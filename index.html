@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<title>일본 단기선교 가이드북</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #fafaf7;
+    color: #1a1a1a;
+    line-height: 1.5;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 60px;
+  }
+
+  /* ===== Header ===== */
+  header.app-header {
+    padding: 8px 4px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+  .subtitle { font-size: 13px; color: #666; margin: 0; }
+
+  /* ===== Home menu grid ===== */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .menu-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .menu-card:active { transform: scale(0.97); }
+  .menu-card .icon { font-size: 24px; }
+  .menu-card .label { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .menu-card .desc { font-size: 11px; color: #888; line-height: 1.4; }
+  .menu-card.changes { border-left: 3px solid #BA7517; background: #fffdf7; }
+
+  /* ===== Section (sub-page) shell ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+  #home.page { display: block; }
+
+  .page-header {
+    position: sticky;
+    top: 0;
+    background: #fafaf7;
+    padding: 8px 0 12px;
+    margin-bottom: 12px;
+    z-index: 20;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0F6E56;
+    padding: 6px 0;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .page-title { font-size: 18px; font-weight: 700; margin: 0; }
+
+  /* ===== Sub tabs (within a section) ===== */
+  .sub-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .sub-tab {
+    flex: 1;
+    min-width: 80px;
+    padding: 9px 4px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+  }
+  .sub-tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  /* ===== Day tabs (horizontal scroll for 9 days) ===== */
+  .day-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .day-tabs::-webkit-scrollbar { height: 4px; }
+  .day-tab {
+    flex: 0 0 auto;
+    min-width: 58px;
+    padding: 8px 6px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+  }
+  .day-tab.active { background: #0F6E56; color: #fff; border-color: #0F6E56; }
+  .day-tab-date { display: block; font-size: 9px; font-weight: 400; opacity: 0.8; margin-top: 2px; }
+
+  .sub-page { display: none; }
+  .sub-page.active { display: block; }
+
+  /* ===== Generic content cards ===== */
+  .card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  .card-sub { font-size: 11px; color: #888; margin: 0 0 8px; }
+  .card-body { font-size: 13px; color: #333; white-space: pre-line; }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: #999;
+    font-size: 13px;
+    background: #fff;
+    border: 1px dashed rgba(0,0,0,0.15);
+    border-radius: 10px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 18px 0 8px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ===== Schedule list items (day-by-day timetable) ===== */
+  .sched-item {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 11px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 10px;
+  }
+  .sched-time {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0F6E56;
+    min-width: 44px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .sched-body { flex: 1; }
+  .sched-activity { font-size: 13.5px; font-weight: 600; color: #1a1a1a; margin: 0 0 2px; }
+  .sched-place { font-size: 11.5px; color: #888; }
+  .sched-note { font-size: 11.5px; color: #A32D2D; margin-top: 3px; }
+
+  /* ===== Overview table (전체 일정) ===== */
+  .overview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .overview-table th, .overview-table td {
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 8px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .overview-table th {
+    background: #f0f0ec;
+    font-weight: 600;
+    font-size: 11px;
+    color: #555;
+  }
+  .overview-table td.date-cell { font-weight: 600; white-space: nowrap; color: #0F6E56; }
+
+  /* ===== Checklist (준비물) ===== */
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .checklist li::before { content: "☐"; color: #0F6E56; font-size: 14px; flex-shrink: 0; }
+  .checklist .item-note { display: block; font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* ===== Song list (찬양 악보) ===== */
+  .song-item {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .song-num { font-size: 11px; color: #aaa; font-weight: 600; min-width: 18px; }
+  .song-title { font-size: 13.5px; font-weight: 500; flex: 1; }
+  .song-note { font-size: 11px; color: #888; }
+
+  /* ===== Changes / update log ===== */
+  .change-item {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-left: 4px solid #ccc;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .change-item.is-new { border-left-color: #BA7517; background: #fffdf5; }
+  .change-item.is-urgent { border-left-color: #A32D2D; background: #fdecec; }
+  .change-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .change-date { font-size: 11px; color: #888; font-variant-numeric: tabular-nums; }
+  .change-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #f0f0ec;
+    color: #555;
+  }
+  .change-tag.urgent { background: #A32D2D; color: #fff; }
+  .change-tag.new { background: #BA7517; color: #fff; }
+  .change-title { font-size: 14px; font-weight: 600; margin: 2px 0 4px; }
+  .change-body { font-size: 13px; color: #444; white-space: pre-line; }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 24px;
+    padding-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- HOME -->
+<!-- ============================================================ -->
+<div class="page active" id="home">
+  <header class="app-header">
+    <h1 id="tripTitle">일본 단기선교 가이드북</h1>
+    <p class="subtitle" id="tripSubtitle">2026.08.04(화) ~ 08.12(수) · 8박 9일</p>
+  </header>
+
+  <div class="menu-grid">
+    <button class="menu-card" onclick="goTo('page-songs')">
+      <span class="icon">🎵</span>
+      <span class="label">찬양 악보</span>
+      <span class="desc">일본어 · 한국어 찬양 리스트</span>
+    </button>
+    <button class="menu-card" onclick="goTo('page-devotion')">
+      <span class="icon">📖</span>
+      <span class="label">말씀 묵상</span>
+      <span class="desc">일자별 본문 및 묵상</span>
+    </button>
+    <button class="menu-card" onclick="goTo('page-schedule')">
+      <span class="icon">📅</span>
+      <span class="label">일정</span>
+      <span class="desc">전체 일정표 · 일자별 시간표</span>
+    </button>
+    <button class="menu-card" onclick="goTo('page-prep')">
+      <span class="icon">🎒</span>
+      <span class="label">필요 준비물</span>
+      <span class="desc">출발 전 · 일자별 준비물</span>
+    </button>
+    <button class="menu-card" onclick="goTo('page-etc')">
+      <span class="icon">📌</span>
+      <span class="label">기타 내용</span>
+      <span class="desc">공지 및 참고사항</span>
+    </button>
+    <button class="menu-card changes" onclick="goTo('page-changes')">
+      <span class="icon">🔔</span>
+      <span class="label">변경사항</span>
+      <span class="desc">현지 업데이트 확인</span>
+    </button>
+  </div>
+
+  <footer>일본 단기선교팀 가이드북</footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1) 찬양 악보 -->
+<!-- ============================================================ -->
+<div class="page" id="page-songs">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">🎵 찬양 악보 리스트</h2>
+  </div>
+
+  <div class="sub-tabs" id="songTabs"></div>
+  <div id="songContent"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 2) 말씀 묵상 -->
+<!-- ============================================================ -->
+<div class="page" id="page-devotion">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">📖 말씀 묵상</h2>
+  </div>
+
+  <div class="day-tabs" id="devotionDayTabs"></div>
+  <div id="devotionContent"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3) 일정 -->
+<!-- ============================================================ -->
+<div class="page" id="page-schedule">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">📅 일정</h2>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-target="sched-overview" onclick="switchScheduleView(this)">전체 일정표</button>
+    <button class="sub-tab" data-target="sched-daily" onclick="switchScheduleView(this)">일자별 시간표</button>
+  </div>
+
+  <div class="sub-page active" id="sched-overview">
+    <div id="overviewTableWrap"></div>
+  </div>
+
+  <div class="sub-page" id="sched-daily">
+    <div class="day-tabs" id="scheduleDayTabs"></div>
+    <div id="scheduleContent"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4) 필요 준비물 -->
+<!-- ============================================================ -->
+<div class="page" id="page-prep">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">🎒 필요 준비물</h2>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-target="prep-before" onclick="switchPrepView(this)">출발 전 준비물</button>
+    <button class="sub-tab" data-target="prep-daily" onclick="switchPrepView(this)">일자별 준비물</button>
+  </div>
+
+  <div class="sub-page active" id="prep-before">
+    <ul class="checklist" id="prepBeforeList"></ul>
+  </div>
+
+  <div class="sub-page" id="prep-daily">
+    <div class="day-tabs" id="prepDayTabs"></div>
+    <div id="prepDailyContent"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5) 기타 내용 -->
+<!-- ============================================================ -->
+<div class="page" id="page-etc">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">📌 기타 내용</h2>
+  </div>
+  <div id="etcContent"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6) 변경사항 -->
+<!-- ============================================================ -->
+<div class="page" id="page-changes">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">🔔 변경사항</h2>
+  </div>
+  <div id="changesContent"></div>
+</div>
+
+
+<script>
+/* ============================================================
+   📦 DATA — 실제 정보는 이 안의 값만 채우거나 교체하면 됩니다.
+   구조(뼈대/CSS/함수)는 건드리지 않아도 콘텐츠가 자동으로 반영됩니다.
+   각 배열의 첫 항목은 형식을 보여주는 [예시]이니, 실제 정보로 교체/추가하세요.
+   ============================================================ */
+
+const DATA = {
+
+  // 여행 기본 정보
+  trip: {
+    title: "일본 단기선교 가이드북",
+    subtitle: "2026.08.04(화) ~ 08.12(수) · 8박 9일",
+  },
+
+  // 일자 목록 (day 탭에 공통으로 사용됨) — 필요시 날짜/요일만 수정
+  days: [
+    { key: "day1", label: "1일차", date: "8/4(화)" },
+    { key: "day2", label: "2일차", date: "8/5(수)" },
+    { key: "day3", label: "3일차", date: "8/6(목)" },
+    { key: "day4", label: "4일차", date: "8/7(금)" },
+    { key: "day5", label: "5일차", date: "8/8(토)" },
+    { key: "day6", label: "6일차", date: "8/9(일)" },
+    { key: "day7", label: "7일차", date: "8/10(월)" },
+    { key: "day8", label: "8일차", date: "8/11(화)" },
+    { key: "day9", label: "9일차", date: "8/12(수)" },
+  ],
+
+  // 1) 찬양 악보 — japan / korean 배열에 곡 추가
+  songs: {
+    japan: [
+      { title: "[예시] きよしこの夜 (고요한 밤 거룩한 밤)", note: "Key G" },
+    ],
+    korean: [
+      { title: "[예시] 주 은혜임을", note: "Key D" },
+    ],
+  },
+
+  // 2) 말씀 묵상 — day 키에 맞춰 채우기 (없는 날은 빈 배열 [] 로 두면 "준비중" 표시)
+  devotion: {
+    day1: { title: "[예시] 부르심에 응답하다", verse: "[예시] 이사야 6:8", content: "[예시] 오늘 본문 묵상 내용을 이 자리에 채워주세요." },
+    day2: null,
+    day3: null,
+    day4: null,
+    day5: null,
+    day6: null,
+    day7: null,
+    day8: null,
+    day9: null,
+  },
+
+  // 3-1) 전체 일정표(개요) — 각 날짜의 한 줄 요약
+  scheduleOverview: [
+    { day: "day1", summary: "[예시] 한국 출발 → 일본 도착, 숙소 이동" },
+    { day: "day2", summary: "" },
+    { day: "day3", summary: "" },
+    { day: "day4", summary: "" },
+    { day: "day5", summary: "" },
+    { day: "day6", summary: "" },
+    { day: "day7", summary: "" },
+    { day: "day8", summary: "" },
+    { day: "day9", summary: "[예시] 숙소 → 공항 → 한국 도착" },
+  ],
+
+  // 3-2) 일자별 상세 시간표 — day 키별로 시간순 배열
+  scheduleDaily: {
+    day1: [
+      { time: "09:00", activity: "[예시] 인천공항 집결", place: "인천공항 3층", note: "여권 지참 필수" },
+    ],
+    day2: [], day3: [], day4: [], day5: [], day6: [], day7: [], day8: [], day9: [],
+  },
+
+  // 4-1) 출발 전 준비물
+  prepBefore: [
+    { item: "[예시] 여권 (유효기간 6개월 이상)", note: "출발 최소 1주 전 확인" },
+  ],
+
+  // 4-2) 일자별 준비물
+  prepDaily: {
+    day1: [
+      { item: "[예시] 여권, 항공권", note: "" },
+    ],
+    day2: [], day3: [], day4: [], day5: [], day6: [], day7: [], day8: [], day9: [],
+  },
+
+  // 5) 기타 내용 — 자유 형식 카드
+  etc: [
+    { title: "[예시] 환전 안내", content: "[예시] 현지 통화 관련 참고 내용을 채워주세요." },
+  ],
+
+  // 6) 변경사항 — 최신 항목을 배열 맨 앞에 추가하세요 (위에서부터 최신순으로 표시됨)
+  changes: [
+    { date: "8/4 09:10", tag: "일반", title: "[예시] 3일차 일정 변경", content: "[예시] 변경 내용을 여기에 적어주세요.", urgent: false },
+  ],
+};
+
+/* ============================================================
+   🧱 렌더링 로직 — 이 아래는 구조 부분이므로 원칙적으로 수정 불필요
+   ============================================================ */
+
+document.getElementById('tripTitle').textContent = DATA.trip.title;
+document.getElementById('tripSubtitle').textContent = DATA.trip.subtitle;
+
+function dayLabel(key) {
+  const d = DATA.days.find(d => d.key === key);
+  return d ? `${d.label} (${d.date})` : key;
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state">${msg}</div>`;
+}
+
+/* ---------- 1) 찬양 악보 ---------- */
+function renderSongs() {
+  const tabsEl = document.getElementById('songTabs');
+  const contentEl = document.getElementById('songContent');
+  const groups = [
+    { key: 'japan', label: '일본어 찬양' },
+    { key: 'korean', label: '한국어 찬양' },
+  ];
+  tabsEl.innerHTML = groups.map((g, i) =>
+    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-key="${g.key}" onclick="showSongGroup('${g.key}', this)">${g.label}</button>`
+  ).join('');
+  showSongGroup(groups[0].key, tabsEl.querySelector('.sub-tab'));
+}
+function showSongGroup(key, btn) {
+  document.querySelectorAll('#songTabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const list = DATA.songs[key] || [];
+  const contentEl = document.getElementById('songContent');
+  if (list.length === 0) {
+    contentEl.innerHTML = emptyState('아직 등록된 악보가 없습니다.');
+    return;
+  }
+  contentEl.innerHTML = list.map((s, i) => `
+    <div class="song-item">
+      <span class="song-num">${i + 1}</span>
+      <span class="song-title">${s.title}</span>
+      ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+/* ---------- 2) 말씀 묵상 ---------- */
+function renderDevotionTabs() {
+  const tabsEl = document.getElementById('devotionDayTabs');
+  tabsEl.innerHTML = DATA.days.map((d, i) =>
+    `<button class="day-tab ${i === 0 ? 'active' : ''}" data-key="${d.key}" onclick="showDevotion('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`
+  ).join('');
+  showDevotion(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
+}
+function showDevotion(key, btn) {
+  document.querySelectorAll('#devotionDayTabs .day-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const d = DATA.devotion[key];
+  const contentEl = document.getElementById('devotionContent');
+  if (!d) {
+    contentEl.innerHTML = emptyState(`${dayLabel(key)} 묵상 내용이 아직 등록되지 않았습니다.`);
+    return;
+  }
+  contentEl.innerHTML = `
+    <div class="card">
+      <p class="card-title">${d.title}</p>
+      <p class="card-sub">${d.verse}</p>
+      <p class="card-body">${d.content}</p>
+    </div>
+  `;
+}
+
+/* ---------- 3) 일정 ---------- */
+function switchScheduleView(btn) {
+  document.querySelectorAll('#page-schedule > .sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#page-schedule .sub-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(btn.dataset.target).classList.add('active');
+}
+function renderOverviewTable() {
+  const wrap = document.getElementById('overviewTableWrap');
+  const rows = DATA.scheduleOverview.map(row => `
+    <tr>
+      <td class="date-cell">${dayLabel(row.day)}</td>
+      <td>${row.summary || '<span style="color:#bbb">미정</span>'}</td>
+    </tr>
+  `).join('');
+  wrap.innerHTML = `
+    <table class="overview-table">
+      <thead><tr><th style="width:100px;">일자</th><th>주요 일정</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+function renderScheduleDayTabs() {
+  const tabsEl = document.getElementById('scheduleDayTabs');
+  tabsEl.innerHTML = DATA.days.map((d, i) =>
+    `<button class="day-tab ${i === 0 ? 'active' : ''}" data-key="${d.key}" onclick="showScheduleDay('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`
+  ).join('');
+  showScheduleDay(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
+}
+function showScheduleDay(key, btn) {
+  document.querySelectorAll('#scheduleDayTabs .day-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const list = DATA.scheduleDaily[key] || [];
+  const contentEl = document.getElementById('scheduleContent');
+  if (list.length === 0) {
+    contentEl.innerHTML = emptyState(`${dayLabel(key)} 시간표가 아직 등록되지 않았습니다.`);
+    return;
+  }
+  contentEl.innerHTML = list.map(item => `
+    <div class="sched-item">
+      <span class="sched-time">${item.time}</span>
+      <div class="sched-body">
+        <p class="sched-activity">${item.activity}</p>
+        ${item.place ? `<div class="sched-place">📍 ${item.place}</div>` : ''}
+        ${item.note ? `<div class="sched-note">⚠ ${item.note}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ---------- 4) 준비물 ---------- */
+function switchPrepView(btn) {
+  document.querySelectorAll('#page-prep > .sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#page-prep .sub-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(btn.dataset.target).classList.add('active');
+}
+function renderPrepBefore() {
+  const el = document.getElementById('prepBeforeList');
+  if (DATA.prepBefore.length === 0) {
+    el.innerHTML = emptyState('등록된 준비물이 없습니다.');
+    return;
+  }
+  el.innerHTML = DATA.prepBefore.map(p => `
+    <li><div><div>${p.item}</div>${p.note ? `<span class="item-note">${p.note}</span>` : ''}</div></li>
+  `).join('');
+}
+function renderPrepDayTabs() {
+  const tabsEl = document.getElementById('prepDayTabs');
+  tabsEl.innerHTML = DATA.days.map((d, i) =>
+    `<button class="day-tab ${i === 0 ? 'active' : ''}" data-key="${d.key}" onclick="showPrepDay('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`
+  ).join('');
+  showPrepDay(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
+}
+function showPrepDay(key, btn) {
+  document.querySelectorAll('#prepDayTabs .day-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const list = DATA.prepDaily[key] || [];
+  const contentEl = document.getElementById('prepDailyContent');
+  if (list.length === 0) {
+    contentEl.innerHTML = emptyState(`${dayLabel(key)} 준비물이 아직 등록되지 않았습니다.`);
+    return;
+  }
+  contentEl.innerHTML = `<ul class="checklist">` + list.map(p => `
+    <li><div><div>${p.item}</div>${p.note ? `<span class="item-note">${p.note}</span>` : ''}</div></li>
+  `).join('') + `</ul>`;
+}
+
+/* ---------- 5) 기타 내용 ---------- */
+function renderEtc() {
+  const el = document.getElementById('etcContent');
+  if (DATA.etc.length === 0) {
+    el.innerHTML = emptyState('등록된 내용이 없습니다.');
+    return;
+  }
+  el.innerHTML = DATA.etc.map(e => `
+    <div class="card">
+      <p class="card-title">${e.title}</p>
+      <p class="card-body">${e.content}</p>
+    </div>
+  `).join('');
+}
+
+/* ---------- 6) 변경사항 ---------- */
+function renderChanges() {
+  const el = document.getElementById('changesContent');
+  if (DATA.changes.length === 0) {
+    el.innerHTML = emptyState('아직 변경사항이 없습니다.');
+    return;
+  }
+  el.innerHTML = DATA.changes.map((c, i) => `
+    <div class="change-item ${c.urgent ? 'is-urgent' : (i === 0 ? 'is-new' : '')}">
+      <div class="change-meta">
+        <span class="change-date">${c.date}</span>
+        <span class="change-tag ${c.urgent ? 'urgent' : (i === 0 ? 'new' : '')}">${c.urgent ? '긴급' : (i === 0 ? '최신' : c.tag)}</span>
+      </div>
+      <p class="change-title">${c.title}</p>
+      <p class="change-body">${c.content}</p>
+    </div>
+  `).join('');
+}
+
+/* ---------- 네비게이션 ---------- */
+function goTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+function goHome() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+/* ---------- 초기 렌더링 ---------- */
+renderSongs();
+renderDevotionTabs();
+renderOverviewTable();
+renderScheduleDayTabs();
+renderPrepBefore();
+renderPrepDayTabs();
+renderEtc();
+renderChanges();
+</script>
+
+</body>
+</html>
