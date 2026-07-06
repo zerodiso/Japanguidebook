@@ -471,6 +471,9 @@ const DATA = {
 
   // 1) 찬양 악보 — japan / korean 배열에 곡 추가
   songs: {
+    both: [
+      { title: "[예시] 주기도문 (한일 합본)", note: "한국어+일본어 병기" },
+    ],
     japan: [
       { title: "[예시] きよしこの夜 (고요한 밤 거룩한 밤)", note: "Key G" },
     ],
@@ -593,9 +596,12 @@ async function loadFromSheets() {
   ]);
 
   // 1) 찬양 악보 : category(japan/korean), title, note, link
-  DATA.songs = { japan: [], korean: [] };
+  DATA.songs = { both: [], japan: [], korean: [] };
   songs.forEach(row => {
-    const group = row.category && row.category.toLowerCase().startsWith('jap') ? 'japan' : 'korean';
+    const cat = (row.category || '').toLowerCase();
+    let group = 'both'; // 인식 안 되는 값이나 '통합'/'both' 계열은 모두 한일 통합으로 분류
+    if (cat.startsWith('jap')) group = 'japan';
+    else if (cat.startsWith('kor')) group = 'korean';
     if (row.title) DATA.songs[group].push({ title: row.title, note: row.note || '', link: row.link || '' });
   });
 
@@ -661,8 +667,8 @@ function emptyState(msg) {
 /* ---------- 1) 찬양 악보 ---------- */
 function renderSongs() {
   const tabsEl = document.getElementById('songTabs');
-  const contentEl = document.getElementById('songContent');
   const groups = [
+    { key: 'both', label: '한일 통합' },
     { key: 'japan', label: '일본어 찬양' },
     { key: 'korean', label: '한국어 찬양' },
   ];
@@ -671,16 +677,8 @@ function renderSongs() {
   ).join('');
   showSongGroup(groups[0].key, tabsEl.querySelector('.sub-tab'));
 }
-function showSongGroup(key, btn) {
-  document.querySelectorAll('#songTabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  const list = DATA.songs[key] || [];
-  const contentEl = document.getElementById('songContent');
-  if (list.length === 0) {
-    contentEl.innerHTML = emptyState('아직 등록된 악보가 없습니다.');
-    return;
-  }
-  contentEl.innerHTML = list.map((s, i) => {
+function renderSongList(list) {
+  return list.map((s, i) => {
     const preview = s.link ? buildScorePreview(s.link) : '';
     return `
     <div class="song-item-wrap">
@@ -693,6 +691,17 @@ function showSongGroup(key, btn) {
     </div>
   `;
   }).join('');
+}
+function showSongGroup(key, btn) {
+  document.querySelectorAll('#songTabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const contentEl = document.getElementById('songContent');
+  const list = DATA.songs[key] || [];
+  if (list.length === 0) {
+    contentEl.innerHTML = emptyState('아직 등록된 악보가 없습니다.');
+    return;
+  }
+  contentEl.innerHTML = renderSongList(list);
 }
 
 // 구글 드라이브 공유 링크에서 파일 ID 추출
