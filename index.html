@@ -239,6 +239,27 @@
   .song-num { font-size: 11px; color: #aaa; font-weight: 600; min-width: 18px; }
   .song-title { font-size: 13.5px; font-weight: 500; flex: 1; }
   .song-note { font-size: 11px; color: #888; }
+  .score-toggle-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: #0F6E56;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .song-item-wrap { margin-bottom: 6px; }
+  .score-preview {
+    margin-top: 6px;
+    background: #f4f4f0;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 6px;
+  }
+  .score-preview iframe, .score-preview img { display: block; width: 100%; border-radius: 6px; }
 
   /* ===== Changes / update log ===== */
   .change-item {
@@ -659,14 +680,58 @@ function showSongGroup(key, btn) {
     contentEl.innerHTML = emptyState('아직 등록된 악보가 없습니다.');
     return;
   }
-  contentEl.innerHTML = list.map((s, i) => `
-    <div class="song-item">
-      <span class="song-num">${i + 1}</span>
-      <span class="song-title">${s.title}</span>
-      ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
-      ${s.link ? `<a href="${s.link}" target="_blank" rel="noopener" style="font-size:11px; color:#0F6E56; font-weight:600; white-space:nowrap;">악보 보기 →</a>` : ''}
+  contentEl.innerHTML = list.map((s, i) => {
+    const previewId = `songPreview_${key}_${i}`;
+    return `
+    <div class="song-item-wrap">
+      <div class="song-item">
+        <span class="song-num">${i + 1}</span>
+        <span class="song-title">${s.title}</span>
+        ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
+        ${s.link ? `<button class="score-toggle-btn" onclick="toggleScorePreview('${previewId}', this)">악보 보기</button>` : ''}
+      </div>
+      ${s.link ? `<div class="score-preview" id="${previewId}" data-link="${s.link}" style="display:none;"></div>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
+}
+
+// 구글 드라이브 공유 링크에서 파일 ID 추출
+function extractDriveId(url) {
+  if (!url) return null;
+  const patterns = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// 링크 형식에 맞춰 인라인 미리보기 HTML 생성 (드라이브 PDF/이미지, 또는 직접 이미지 링크)
+function buildScorePreview(link) {
+  const driveId = extractDriveId(link);
+  if (driveId) {
+    return `<iframe src="https://drive.google.com/file/d/${driveId}/preview" style="height:420px;" loading="lazy"></iframe>`;
+  }
+  if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(link)) {
+    return `<img src="${link}" loading="lazy">`;
+  }
+  return `<iframe src="${link}" style="height:420px;" loading="lazy"></iframe>`;
+}
+
+// 악보 보기 버튼 클릭 시 인라인으로 펼치기/접기
+function toggleScorePreview(id, btn) {
+  const el = document.getElementById(id);
+  const isOpen = el.style.display !== 'none';
+  if (isOpen) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    btn.textContent = '악보 보기';
+  } else {
+    el.style.display = 'block';
+    el.innerHTML = buildScorePreview(el.dataset.link);
+    btn.textContent = '접기';
+  }
 }
 
 /* ---------- 2) 말씀 묵상 ---------- */
