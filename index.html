@@ -284,6 +284,7 @@
   <header class="app-header">
     <h1 id="tripTitle">일본 단기선교 가이드북</h1>
     <p class="subtitle" id="tripSubtitle">2026.08.04(화) ~ 08.12(수) · 8박 9일</p>
+    <p class="subtitle" id="loadStatus" style="margin-top:6px; font-size:11px;">📡 최신 정보를 불러오는 중...</p>
   </header>
 
   <div class="menu-grid">
@@ -516,6 +517,111 @@ const DATA = {
 };
 
 /* ============================================================
+   🔗 구글 시트 연동 설정
+   1) 구글 시트를 만들고 "공유" → "링크가 있는 모든 사용자 - 뷰어"로 설정
+   2) 주소창의 시트 ID를 복사해서 아래 SHEET_ID에 붙여넣기
+      예) https://docs.google.com/spreadsheets/d/1AbCdEfGhIj.../edit
+                                              └────────┘ 이 부분
+   3) 시트 하단 탭 이름은 SHEET_TABS 값과 정확히 일치해야 함 (대소문자 포함)
+   ============================================================ */
+const SHEET_ID = "여기에_구글시트_ID_붙여넣기";
+const SHEET_TABS = {
+  songs: "Songs",
+  devotion: "Devotion",
+  scheduleOverview: "ScheduleOverview",
+  scheduleDaily: "ScheduleDaily",
+  prepBefore: "PrepBefore",
+  prepDaily: "PrepDaily",
+  etc: "Etc",
+  changes: "Changes",
+};
+
+// 구글 시트 한 탭을 [{컬럼명: 값}, ...] 형태의 배열로 가져옴
+async function fetchSheetRows(tabName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tabName)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const jsonStr = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
+  const json = JSON.parse(jsonStr);
+  const cols = json.table.cols.map(c => (c.label || '').trim().toLowerCase());
+  return (json.table.rows || []).map(r => {
+    const obj = {};
+    cols.forEach((key, i) => {
+      const cell = r.c[i];
+      obj[key] = cell && cell.v !== null && cell.v !== undefined ? String(cell.v) : '';
+    });
+    return obj;
+  });
+}
+
+function toBool(v) {
+  return ['true', 'y', 'yes', '1', 'o'].includes(String(v).trim().toLowerCase());
+}
+
+// 시트에서 받아온 원시 rows를 기존 DATA 구조 형태로 변환해서 채워 넣음
+async function loadFromSheets() {
+  const [songs, devotion, schedOverview, schedDaily, prepBefore, prepDaily, etc, changes] = await Promise.all([
+    fetchSheetRows(SHEET_TABS.songs),
+    fetchSheetRows(SHEET_TABS.devotion),
+    fetchSheetRows(SHEET_TABS.scheduleOverview),
+    fetchSheetRows(SHEET_TABS.scheduleDaily),
+    fetchSheetRows(SHEET_TABS.prepBefore),
+    fetchSheetRows(SHEET_TABS.prepDaily),
+    fetchSheetRows(SHEET_TABS.etc),
+    fetchSheetRows(SHEET_TABS.changes),
+  ]);
+
+  // 1) 찬양 악보 : category(japan/korean), title, note, link
+  DATA.songs = { japan: [], korean: [] };
+  songs.forEach(row => {
+    const group = row.category && row.category.toLowerCase().startsWith('jap') ? 'japan' : 'korean';
+    if (row.title) DATA.songs[group].push({ title: row.title, note: row.note || '', link: row.link || '' });
+  });
+
+  // 2) 말씀 묵상 : day, title, verse, content
+  DATA.devotion = {};
+  DATA.days.forEach(d => DATA.devotion[d.key] = null);
+  devotion.forEach(row => {
+    if (row.day) DATA.devotion[row.day] = { title: row.title, verse: row.verse, content: row.content };
+  });
+
+  // 3-1) 전체 일정표 : day, summary  (DATA.days 순서에 맞춰 정렬)
+  const overviewMap = {};
+  schedOverview.forEach(row => { if (row.day) overviewMap[row.day] = row.summary || ''; });
+  DATA.scheduleOverview = DATA.days.map(d => ({ day: d.key, summary: overviewMap[d.key] || '' }));
+
+  // 3-2) 일자별 시간표 : day, time, activity, place, note
+  DATA.scheduleDaily = {};
+  DATA.days.forEach(d => DATA.scheduleDaily[d.key] = []);
+  schedDaily.forEach(row => {
+    if (row.day && DATA.scheduleDaily[row.day]) {
+      DATA.scheduleDaily[row.day].push({ time: row.time || '', activity: row.activity || '', place: row.place || '', note: row.note || '' });
+    }
+  });
+
+  // 4-1) 출발 전 준비물 : item, note
+  DATA.prepBefore = prepBefore.filter(r => r.item).map(r => ({ item: r.item, note: r.note || '' }));
+
+  // 4-2) 일자별 준비물 : day, item, note
+  DATA.prepDaily = {};
+  DATA.days.forEach(d => DATA.prepDaily[d.key] = []);
+  prepDaily.forEach(row => {
+    if (row.day && DATA.prepDaily[row.day]) {
+      DATA.prepDaily[row.day].push({ item: row.item || '', note: row.note || '' });
+    }
+  });
+
+  // 5) 기타 내용 : title, content
+  DATA.etc = etc.filter(r => r.title).map(r => ({ title: r.title, content: r.content || '' }));
+
+  // 6) 변경사항 : date, tag, title, content, urgent (TRUE/FALSE)
+  //    ※ 시트에서 새 항목은 항상 맨 위(헤더 바로 아래 행)에 추가해야 최신순으로 표시됨
+  DATA.changes = changes.filter(r => r.title).map(r => ({
+    date: r.date || '', tag: r.tag || '일반', title: r.title, content: r.content || '', urgent: toBool(r.urgent),
+  }));
+}
+
+/* ============================================================
    🧱 렌더링 로직 — 이 아래는 구조 부분이므로 원칙적으로 수정 불필요
    ============================================================ */
 
@@ -558,6 +664,7 @@ function showSongGroup(key, btn) {
       <span class="song-num">${i + 1}</span>
       <span class="song-title">${s.title}</span>
       ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
+      ${s.link ? `<a href="${s.link}" target="_blank" rel="noopener" style="font-size:11px; color:#0F6E56; font-weight:600; white-space:nowrap;">악보 보기 →</a>` : ''}
     </div>
   `).join('');
 }
@@ -723,14 +830,36 @@ function goHome() {
 }
 
 /* ---------- 초기 렌더링 ---------- */
-renderSongs();
-renderDevotionTabs();
-renderOverviewTable();
-renderScheduleDayTabs();
-renderPrepBefore();
-renderPrepDayTabs();
-renderEtc();
-renderChanges();
+function renderAll() {
+  renderSongs();
+  renderDevotionTabs();
+  renderOverviewTable();
+  renderScheduleDayTabs();
+  renderPrepBefore();
+  renderPrepDayTabs();
+  renderEtc();
+  renderChanges();
+}
+
+async function init() {
+  const statusEl = document.getElementById('loadStatus');
+  if (SHEET_ID === "여기에_구글시트_ID_붙여넣기") {
+    // 시트 ID가 아직 설정되지 않은 경우: 기본(예시) 데이터로만 표시
+    statusEl.textContent = "⚠ 구글 시트가 연결되지 않아 예시 데이터로 표시 중입니다.";
+    renderAll();
+    return;
+  }
+  try {
+    await loadFromSheets();
+    statusEl.textContent = "✅ 최신 정보로 업데이트되었습니다 · " + new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    renderAll();
+  } catch (e) {
+    console.error('구글 시트 로딩 실패:', e);
+    statusEl.textContent = "⚠ 최신 정보를 불러오지 못했습니다. 기존 내용으로 표시합니다.";
+    renderAll();
+  }
+}
+init();
 </script>
 
 </body>
