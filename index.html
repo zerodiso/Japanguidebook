@@ -681,16 +681,15 @@ function showSongGroup(key, btn) {
     return;
   }
   contentEl.innerHTML = list.map((s, i) => {
-    const previewId = `songPreview_${key}_${i}`;
+    const preview = s.link ? buildScorePreview(s.link) : '';
     return `
     <div class="song-item-wrap">
       <div class="song-item">
         <span class="song-num">${i + 1}</span>
         <span class="song-title">${s.title}</span>
         ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
-        ${s.link ? `<button class="score-toggle-btn" onclick="toggleScorePreview('${previewId}', this)">악보 보기</button>` : ''}
       </div>
-      ${s.link ? `<div class="score-preview" id="${previewId}" data-link="${s.link}" style="display:none;"></div>` : ''}
+      ${preview ? `<div class="score-preview">${preview}</div>` : ''}
     </div>
   `;
   }).join('');
@@ -707,31 +706,17 @@ function extractDriveId(url) {
   return null;
 }
 
-// 링크 형식에 맞춰 인라인 미리보기 HTML 생성 (드라이브 PDF/이미지, 또는 직접 이미지 링크)
+// 링크 형식에 맞춰 인라인 미리보기 HTML 생성 (드라이브 이미지/PDF는 img로, 그 외는 iframe으로)
 function buildScorePreview(link) {
   const driveId = extractDriveId(link);
   if (driveId) {
-    return `<iframe src="https://drive.google.com/file/d/${driveId}/preview" style="height:420px;" loading="lazy"></iframe>`;
+    // 드라이브에 올린 사진은 img 태그로 바로 렌더링 (클릭 없이 바로 보임)
+    return `<img src="https://drive.google.com/uc?export=view&id=${driveId}" loading="lazy" onerror="this.outerHTML='<iframe src=\\'https://drive.google.com/file/d/${driveId}/preview\\' style=\\'height:420px;\\' loading=\\'lazy\\'></iframe>'">`;
   }
   if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(link)) {
     return `<img src="${link}" loading="lazy">`;
   }
   return `<iframe src="${link}" style="height:420px;" loading="lazy"></iframe>`;
-}
-
-// 악보 보기 버튼 클릭 시 인라인으로 펼치기/접기
-function toggleScorePreview(id, btn) {
-  const el = document.getElementById(id);
-  const isOpen = el.style.display !== 'none';
-  if (isOpen) {
-    el.style.display = 'none';
-    el.innerHTML = '';
-    btn.textContent = '악보 보기';
-  } else {
-    el.style.display = 'block';
-    el.innerHTML = buildScorePreview(el.dataset.link);
-    btn.textContent = '접기';
-  }
 }
 
 /* ---------- 2) 말씀 묵상 ---------- */
