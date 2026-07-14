@@ -221,6 +221,31 @@
   }
   .overview-table th:first-child { z-index: 3; }
 
+  /* ===== Phrase list (도움되는 것 - 자주 사용하는 말) ===== */
+  .phrase-item {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .phrase-kr { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+  .phrase-jp-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .phrase-jp { font-size: 14px; color: #0F6E56; font-weight: 600; }
+  .phrase-reading { font-size: 12px; color: #888; }
+  .speak-btn {
+    margin-left: auto;
+    background: #f0f0ec;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .speak-btn:active { background: #0F6E56; }
+
   /* ===== Checklist (준비물) ===== */
   .checklist { list-style: none; padding: 0; margin: 0; }
   .checklist li {
@@ -321,6 +346,11 @@
   </header>
 
   <div class="menu-grid">
+    <button class="menu-card" onclick="goTo('page-helpful')">
+      <span class="icon">🗣️</span>
+      <span class="label">도움되는 것</span>
+      <span class="desc">자주 사용하는 말 등 참고 자료</span>
+    </button>
     <button class="menu-card" onclick="goTo('page-songs')">
       <span class="icon">🎵</span>
       <span class="label">찬양 악보</span>
@@ -354,6 +384,19 @@
   </div>
 
   <footer>일본 단기선교팀 가이드북</footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- 0) 도움되는 것 -->
+<!-- ============================================================ -->
+<div class="page" id="page-helpful">
+  <div class="page-header">
+    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <h2 class="page-title">🗣️ 도움되는 것</h2>
+  </div>
+
+  <div class="sub-tabs" id="phraseTabs"></div>
+  <div id="phraseContent"></div>
 </div>
 
 <!-- ============================================================ -->
@@ -462,6 +505,11 @@
 
 const DATA = {
 
+  // 0) 도움되는 것 - 자주 사용하는 말 (tab 값이 같은 것끼리 자동으로 하위 탭이 생성됨)
+  phrases: [
+    { tab: "자주 사용하는 말", korean: "[예시] 조심해", japanese: "気を付けて", reading: "키오츠케테" },
+  ],
+
   // 여행 기본 정보
   trip: {
     title: "일본 단기선교 가이드북",
@@ -567,6 +615,7 @@ const DATA = {
    ============================================================ */
 const SHEET_ID = "1e-fYMtnsH_Z8fdBgo5kqwZUlab_QvftwzfP87UHCWTc";
 const SHEET_TABS = {
+  phrases: "Phrases",
   songs: "Songs",
   devotion: "Devotion",
   scheduleOverview: "ScheduleOverview",
@@ -601,7 +650,8 @@ function toBool(v) {
 
 // 시트에서 받아온 원시 rows를 기존 DATA 구조 형태로 변환해서 채워 넣음
 async function loadFromSheets() {
-  const [songs, devotion, schedOverview, schedDaily, prepBefore, prepDaily, etc, changes] = await Promise.all([
+  const [phrases, songs, devotion, schedOverview, schedDaily, prepBefore, prepDaily, etc, changes] = await Promise.all([
+    fetchSheetRows(SHEET_TABS.phrases),
     fetchSheetRows(SHEET_TABS.songs),
     fetchSheetRows(SHEET_TABS.devotion),
     fetchSheetRows(SHEET_TABS.scheduleOverview),
@@ -611,6 +661,11 @@ async function loadFromSheets() {
     fetchSheetRows(SHEET_TABS.etc),
     fetchSheetRows(SHEET_TABS.changes),
   ]);
+
+  // 0) 도움되는 것 - 자주 사용하는 말 : tab, korean, japanese, reading
+  DATA.phrases = phrases.filter(r => r.korean || r.japanese).map(r => ({
+    tab: r.tab || '자주 사용하는 말', korean: r.korean || '', japanese: r.japanese || '', reading: r.reading || '',
+  }));
 
   // 1) 찬양 악보 : category(japan/korean), title, note, link
   DATA.songs = { both: [], japan: [], korean: [] };
@@ -684,6 +739,63 @@ function dayLabel(key) {
 
 function emptyState(msg) {
   return `<div class="empty-state">${msg}</div>`;
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ---------- 0) 도움되는 것 - 자주 사용하는 말 ---------- */
+function renderPhrases() {
+  const tabsEl = document.getElementById('phraseTabs');
+  const list = DATA.phrases || [];
+  const tabNames = [];
+  list.forEach(p => { if (p.tab && !tabNames.includes(p.tab)) tabNames.push(p.tab); });
+  if (tabNames.length === 0) tabNames.push('자주 사용하는 말');
+
+  tabsEl.innerHTML = tabNames.map((t, i) =>
+    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-tab="${escapeHtml(t)}" onclick="showPhraseTab(this)">${t}</button>`
+  ).join('');
+  showPhraseTab(tabsEl.querySelector('.sub-tab'));
+}
+function showPhraseTab(btn) {
+  document.querySelectorAll('#phraseTabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const tabName = btn.dataset.tab;
+  const contentEl = document.getElementById('phraseContent');
+  const items = (DATA.phrases || []).filter(p => (p.tab || '자주 사용하는 말') === tabName);
+  if (items.length === 0) {
+    contentEl.innerHTML = emptyState('아직 등록된 내용이 없습니다.');
+    return;
+  }
+  contentEl.innerHTML = items.map(p => `
+    <div class="phrase-item">
+      <div class="phrase-kr">${escapeHtml(p.korean)}</div>
+      <div class="phrase-jp-row">
+        <span class="phrase-jp">${escapeHtml(p.japanese)}</span>
+        <span class="phrase-reading">${escapeHtml(p.reading)}</span>
+        <button class="speak-btn" data-jp="${escapeHtml(p.japanese)}" onclick="speakJapanese(this)" title="일본어 발음 듣기">🔊</button>
+      </div>
+    </div>
+  `).join('');
+}
+// 브라우저 내장 음성합성(Web Speech API)으로 일본어 읽어주기 — 별도 서버/비용 없이 동작
+function speakJapanese(btn) {
+  const text = btn.dataset.jp;
+  if (!text) return;
+  if (!('speechSynthesis' in window)) {
+    alert('이 브라우저는 음성 재생 기능을 지원하지 않습니다.');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.9;
+  window.speechSynthesis.speak(utter);
 }
 
 /* ---------- 1) 찬양 악보 ---------- */
