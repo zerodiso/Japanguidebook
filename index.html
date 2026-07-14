@@ -224,6 +224,67 @@
     vertical-align: 1px;
   }
 
+
+  /* 일정 강조 기준 시각 테스트 */
+  .schedule-time-control {
+    background: #fffdf7;
+    border: 1px solid rgba(186,117,23,0.28);
+    border-left: 4px solid #BA7517;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .schedule-time-control-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6f410f;
+    margin-bottom: 3px;
+  }
+  .schedule-time-control-help {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 9px;
+  }
+  .schedule-time-control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .schedule-time-input {
+    flex: 1 1 220px;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid rgba(0,0,0,0.16);
+    border-radius: 8px;
+    background: #fff;
+    color: #1a1a1a;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .schedule-time-reset {
+    flex: 0 0 auto;
+    padding: 9px 11px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    background: #f0f0ec;
+    color: #444;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .schedule-time-reset:active { background: #e3e3dc; }
+  .schedule-time-status {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: #0F6E56;
+  }
+  .schedule-time-status.testing {
+    color: #8a4f0c;
+    font-weight: 600;
+  }
+
   /* ===== Overview table (전체 일정계획표 - 그리드형) ===== */
   .overview-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); }
   .overview-table { border-collapse: collapse; font-size: 11px; min-width: 780px; width: 100%; }
@@ -475,6 +536,21 @@
   </div>
 
   <div class="sub-page" id="sched-daily">
+    <div class="schedule-time-control">
+      <div class="schedule-time-control-title">🧪 강조 시간 테스트</div>
+      <div class="schedule-time-control-help">날짜와 시간을 선택하면 그 시각을 기준으로 표시합니다. 입력값을 비우면 실시간으로 돌아갑니다.</div>
+      <div class="schedule-time-control-row">
+        <input
+          class="schedule-time-input"
+          id="scheduleTestDateTime"
+          type="datetime-local"
+          aria-label="일정 강조 테스트 날짜와 시간"
+          onchange="applyScheduleTestDateTime(this.value)"
+        >
+        <button class="schedule-time-reset" type="button" onclick="clearScheduleTestDateTime()">실시간으로</button>
+      </div>
+      <div class="schedule-time-status" id="scheduleTimeStatus">현재 기기 시각을 기준으로 표시합니다.</div>
+    </div>
     <div class="day-tabs" id="scheduleDayTabs"></div>
     <div id="scheduleContent"></div>
   </div>
@@ -920,6 +996,89 @@ function showDevotion(key, btn) {
 }
 
 /* ---------- 3) 일정 ---------- */
+let scheduleTestNow = null;
+
+function parseScheduleTestDateTime(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const date = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    Number(match[4]),
+    Number(match[5]),
+    0,
+    0
+  );
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getScheduleReferenceNow() {
+  return scheduleTestNow ? new Date(scheduleTestNow.getTime()) : new Date();
+}
+
+function formatScheduleReferenceTime(date) {
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function updateScheduleTimeStatus() {
+  const statusEl = document.getElementById('scheduleTimeStatus');
+  if (!statusEl) return;
+
+  if (!scheduleTestNow) {
+    statusEl.classList.remove('testing');
+    statusEl.textContent = '실시간 기준 · 현재 기기 시각으로 일정이 강조됩니다.';
+    return;
+  }
+
+  const referenceKey = getTodayDayKey(scheduleTestNow);
+  statusEl.classList.add('testing');
+  statusEl.textContent = referenceKey
+    ? `테스트 기준 · ${formatScheduleReferenceTime(scheduleTestNow)} · ${dayLabel(referenceKey)}`
+    : `테스트 기준 · ${formatScheduleReferenceTime(scheduleTestNow)} · 선교 일정 기간 밖`;
+}
+
+function selectScheduleReferenceDay(referenceNow, scrollToCurrent = true) {
+  const key = getTodayDayKey(referenceNow);
+  if (!key) {
+    refreshCurrentScheduleHighlight();
+    return;
+  }
+
+  const btn = document.querySelector(`#scheduleDayTabs .day-tab[data-key="${key}"]`);
+  if (!btn) return;
+  showScheduleDay(key, btn);
+  btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+
+  if (scrollToCurrent) {
+    requestAnimationFrame(() => {
+      document.querySelector('#scheduleContent .sched-item.current')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+}
+
+function applyScheduleTestDateTime(value) {
+  scheduleTestNow = parseScheduleTestDateTime(value);
+  updateScheduleTimeStatus();
+  selectScheduleReferenceDay(getScheduleReferenceNow());
+}
+
+function clearScheduleTestDateTime() {
+  scheduleTestNow = null;
+  const input = document.getElementById('scheduleTestDateTime');
+  if (input) input.value = '';
+  updateScheduleTimeStatus();
+  selectScheduleReferenceDay(getScheduleReferenceNow());
+}
+
 function switchScheduleView(btn) {
   document.querySelectorAll('#page-schedule > .sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
@@ -1023,7 +1182,7 @@ function getScheduleRange(timeText, nextTimeText) {
   const nextStart = parseClockMinutes(nextTimeText);
   return { start, end: nextStart !== null && nextStart > start ? nextStart : Math.min(start + 60, 1440) };
 }
-function isCurrentScheduleItem(key, item, index, list, now = new Date()) {
+function isCurrentScheduleItem(key, item, index, list, now = getScheduleReferenceNow()) {
   if (key !== getTodayDayKey(now)) return false;
   const range = getScheduleRange(item.time, list[index + 1]?.time || '');
   if (!range) return false;
@@ -1039,19 +1198,21 @@ function isCurrentScheduleItem(key, item, index, list, now = new Date()) {
 
 function renderScheduleDayTabs() {
   const tabsEl = document.getElementById('scheduleDayTabs');
-  const todayKey = getTodayDayKey();
-  const initialKey = todayKey || DATA.days[0].key;
+  const referenceNow = getScheduleReferenceNow();
+  const referenceKey = getTodayDayKey(referenceNow);
+  const initialKey = referenceKey || DATA.days[0].key;
 
   tabsEl.innerHTML = DATA.days.map(d => {
     const classes = ['day-tab'];
     if (d.key === initialKey) classes.push('active');
-    if (d.key === todayKey) classes.push('today');
+    if (d.key === referenceKey) classes.push('today');
     return `<button class="${classes.join(' ')}" data-key="${d.key}" onclick="showScheduleDay('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`;
   }).join('');
 
   const initialBtn = tabsEl.querySelector(`[data-key="${initialKey}"]`);
   showScheduleDay(initialKey, initialBtn);
   initialBtn?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  updateScheduleTimeStatus();
 }
 function showScheduleDay(key, btn) {
   document.querySelectorAll('#scheduleDayTabs .day-tab').forEach(t => t.classList.remove('active'));
@@ -1062,13 +1223,16 @@ function showScheduleDay(key, btn) {
     contentEl.innerHTML = emptyState(`${dayLabel(key)} 시간표가 아직 등록되지 않았습니다.`);
     return;
   }
+
+  const referenceNow = getScheduleReferenceNow();
+  const badgeText = scheduleTestNow ? '선택 시간' : '지금';
   contentEl.innerHTML = list.map((item, index) => {
-    const isCurrent = isCurrentScheduleItem(key, item, index, list);
+    const isCurrent = isCurrentScheduleItem(key, item, index, list, referenceNow);
     return `
     <div class="sched-item ${isCurrent ? 'current' : ''}">
       <span class="sched-time">${escapeHtml(item.time)}</span>
       <div class="sched-body">
-        <p class="sched-activity">${escapeHtml(item.activity)}${isCurrent ? '<span class="sched-current-badge">지금</span>' : ''}</p>
+        <p class="sched-activity">${escapeHtml(item.activity)}${isCurrent ? `<span class="sched-current-badge">${badgeText}</span>` : ''}</p>
         ${item.place ? `<div class="sched-place">📍 ${escapeHtml(item.place)}</div>` : ''}
         ${item.note ? `<div class="sched-note">⚠ ${escapeHtml(item.note)}</div>` : ''}
       </div>
@@ -1077,13 +1241,15 @@ function showScheduleDay(key, btn) {
   }).join('');
 }
 function refreshCurrentScheduleHighlight() {
-  const todayKey = getTodayDayKey();
+  const referenceNow = getScheduleReferenceNow();
+  const referenceKey = getTodayDayKey(referenceNow);
   document.querySelectorAll('#scheduleDayTabs .day-tab').forEach(tab => {
-    tab.classList.toggle('today', tab.dataset.key === todayKey);
+    tab.classList.toggle('today', tab.dataset.key === referenceKey);
   });
 
   const activeBtn = document.querySelector('#scheduleDayTabs .day-tab.active');
   if (activeBtn) showScheduleDay(activeBtn.dataset.key, activeBtn);
+  updateScheduleTimeStatus();
 }
 
 
