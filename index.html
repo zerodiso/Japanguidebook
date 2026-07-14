@@ -193,21 +193,33 @@
   .sched-place { font-size: 11.5px; color: #888; }
   .sched-note { font-size: 11.5px; color: #A32D2D; margin-top: 3px; }
 
-  /* ===== Overview table (전체 일정) ===== */
-  .overview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  /* ===== Overview table (전체 일정계획표 - 그리드형) ===== */
+  .overview-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); }
+  .overview-table { border-collapse: collapse; font-size: 11px; min-width: 780px; width: 100%; }
   .overview-table th, .overview-table td {
     border: 1px solid rgba(0,0,0,0.08);
-    padding: 8px 6px;
-    text-align: left;
-    vertical-align: top;
+    padding: 6px 4px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.3;
   }
   .overview-table th {
     background: #f0f0ec;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 11px;
-    color: #555;
+    color: #444;
   }
-  .overview-table td.date-cell { font-weight: 600; white-space: nowrap; color: #0F6E56; }
+  .overview-table th:first-child, .overview-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #f7f7f3;
+    font-weight: 600;
+    color: #0F6E56;
+    white-space: nowrap;
+    font-size: 10px;
+    z-index: 2;
+  }
+  .overview-table th:first-child { z-index: 3; }
 
   /* ===== Checklist (준비물) ===== */
   .checklist { list-style: none; padding: 0; margin: 0; }
@@ -495,18 +507,23 @@ const DATA = {
     day9: null,
   },
 
-  // 3-1) 전체 일정표(개요) — 각 날짜의 한 줄 요약
-  scheduleOverview: [
-    { day: "day1", summary: "[예시] 한국 출발 → 일본 도착, 숙소 이동" },
-    { day: "day2", summary: "" },
-    { day: "day3", summary: "" },
-    { day: "day4", summary: "" },
-    { day: "day5", summary: "" },
-    { day: "day6", summary: "" },
-    { day: "day7", summary: "" },
-    { day: "day8", summary: "" },
-    { day: "day9", summary: "[예시] 숙소 → 공항 → 한국 도착" },
-  ],
+  // 3-1) 전체 일정계획표 (그리드형) — 시간대별 x 일자별 표. 이미지 속 표와 동일한 구조.
+  //     slots: 시간대 목록 (표의 행), byDay: 각 day 키별로 slots와 같은 길이의 활동 배열 (표의 열)
+  //     같은 날짜(열)에서 연속된 시간대에 같은 문구를 넣으면 자동으로 셀이 합쳐져서 표시됨
+  scheduleOverview: {
+    slots: ["8:00~9:00", "9:00~10:00", "10:00~11:00"],
+    byDay: {
+      day1: ["[예시] 일본 출발", "[예시] 일본 출발", "[예시] 일본 출발"],
+      day2: ["", "", ""],
+      day3: ["", "", ""],
+      day4: ["", "", ""],
+      day5: ["", "", ""],
+      day6: ["", "", ""],
+      day7: ["", "", ""],
+      day8: ["", "", ""],
+      day9: ["", "", ""],
+    },
+  },
 
   // 3-2) 일자별 상세 시간표 — day 키별로 시간순 배열
   scheduleDaily: {
@@ -612,10 +629,15 @@ async function loadFromSheets() {
     if (row.day) DATA.devotion[row.day] = { title: row.title, verse: row.verse, content: row.content };
   });
 
-  // 3-1) 전체 일정표 : day, summary  (DATA.days 순서에 맞춰 정렬)
-  const overviewMap = {};
-  schedOverview.forEach(row => { if (row.day) overviewMap[row.day] = row.summary || ''; });
-  DATA.scheduleOverview = DATA.days.map(d => ({ day: d.key, summary: overviewMap[d.key] || '' }));
+  // 3-1) 전체 일정계획표(그리드) : time, day1, day2, ... day9  (각 셀 = 그 날짜의 그 시간대 활동)
+  const dayKeys = DATA.days.map(d => d.key);
+  DATA.scheduleOverview = {
+    slots: schedOverview.map(r => r.time || ''),
+    byDay: {},
+  };
+  dayKeys.forEach(k => {
+    DATA.scheduleOverview.byDay[k] = schedOverview.map(r => r[k] || '');
+  });
 
   // 3-2) 일자별 시간표 : day, time, activity, place, note
   DATA.scheduleDaily = {};
@@ -761,19 +783,49 @@ function switchScheduleView(btn) {
   document.querySelectorAll('#page-schedule .sub-page').forEach(p => p.classList.remove('active'));
   document.getElementById(btn.dataset.target).classList.add('active');
 }
+// 같은 값이 연속되는 구간을 하나로 합쳐서 rowspan 정보로 변환 (빈 값은 병합하지 않음)
+function collapseColumn(values) {
+  const result = new Array(values.length).fill(null);
+  let i = 0;
+  while (i < values.length) {
+    let j = i;
+    while (j + 1 < values.length && values[i] !== '' && values[j + 1] === values[i]) j++;
+    result[i] = { text: values[i] || '', span: j - i + 1 };
+    i = j + 1;
+  }
+  return result;
+}
 function renderOverviewTable() {
   const wrap = document.getElementById('overviewTableWrap');
-  const rows = DATA.scheduleOverview.map(row => `
-    <tr>
-      <td class="date-cell">${dayLabel(row.day)}</td>
-      <td>${row.summary || '<span style="color:#bbb">미정</span>'}</td>
-    </tr>
-  `).join('');
+  const grid = DATA.scheduleOverview;
+  if (!grid || !grid.slots || grid.slots.length === 0) {
+    wrap.innerHTML = emptyState('아직 등록된 일정계획표가 없습니다.');
+    return;
+  }
+  const dayKeys = DATA.days.map(d => d.key);
+  const collapsed = {};
+  dayKeys.forEach(k => collapsed[k] = collapseColumn(grid.byDay[k] || []));
+
+  const headerHtml = `<th style="width:56px;">시간</th>` + DATA.days.map(d => `<th>${d.date}</th>`).join('');
+  let bodyHtml = '';
+  grid.slots.forEach((slot, rowIdx) => {
+    let rowHtml = `<td>${slot}</td>`;
+    dayKeys.forEach(k => {
+      const seg = collapsed[k][rowIdx];
+      if (seg === null) return; // 이전 행의 rowspan에 이미 포함된 칸이므로 건너뜀
+      const rowspanAttr = seg.span > 1 ? ` rowspan="${seg.span}"` : '';
+      rowHtml += `<td${rowspanAttr}>${seg.text || ''}</td>`;
+    });
+    bodyHtml += `<tr>${rowHtml}</tr>`;
+  });
+
   wrap.innerHTML = `
-    <table class="overview-table">
-      <thead><tr><th style="width:100px;">일자</th><th>주요 일정</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+    <div class="overview-scroll">
+      <table class="overview-table">
+        <thead><tr>${headerHtml}</tr></thead>
+        <tbody>${bodyHtml}</tbody>
+      </table>
+    </div>
   `;
 }
 function renderScheduleDayTabs() {
