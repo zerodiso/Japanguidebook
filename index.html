@@ -744,7 +744,14 @@ async function fetchSheetRows(tabName) {
     const obj = {};
     cols.forEach((key, i) => {
       const cell = r.c[i];
-      obj[key] = cell && cell.v !== null && cell.v !== undefined ? String(cell.v) : '';
+      let val = '';
+      if (cell) {
+        // 한 열에 숫자와 텍스트가 섞이면 구글 시트가 텍스트 값을 v(원본값)에서 누락시키는 경우가 있어
+        // v가 비어있으면 f(화면에 보이는 표시값)를 대신 사용해서 텍스트가 사라지지 않도록 함
+        if (cell.v !== null && cell.v !== undefined && cell.v !== '') val = String(cell.v);
+        else if (cell.f !== null && cell.f !== undefined) val = String(cell.f);
+      }
+      obj[key] = val;
     });
     return obj;
   });
