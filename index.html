@@ -1302,7 +1302,8 @@ function renderPrepDayTabs() {
 function showPrepDay(key, btn) {
   document.querySelectorAll('#prepDayTabs .day-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  const items = (DATA.prep || []).filter(p => p.day === key);
+  // day 칸에 "day1,day9"처럼 콤마로 여러 날짜를 적으면 각 날짜 탭에 모두 표시됨
+  const items = (DATA.prep || []).filter(p => (p.day || '').split(',').map(d => d.trim()).includes(key));
   const contentEl = document.getElementById('prepDailyContent');
   contentEl.innerHTML = items.length ? renderPrepSections(items) : emptyState(`${dayLabel(key)} 준비물이 아직 등록되지 않았습니다.`);
 }
