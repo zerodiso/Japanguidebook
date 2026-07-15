@@ -338,6 +338,19 @@
   }
   .speak-btn:active { background: #0F6E56; }
 
+  .note-item {
+    background: #fffdf5;
+    border: 1px solid rgba(186,117,23,0.25);
+    border-left: 3px solid #BA7517;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+  }
+  .note-item::before { content: "📌 "; }
+
   /* ===== Checklist (준비물) ===== */
   .checklist { list-style: none; padding: 0; margin: 0; }
   .checklist li {
@@ -613,9 +626,11 @@
 
 const DATA = {
 
-  // 0) 도움되는 것 - 자주 사용하는 말 (tab 값이 같은 것끼리 자동으로 하위 탭이 생성됨)
+  // 0) 도움되는 것 (tab 값이 같은 것끼리 자동으로 하위 탭이 생성됨)
+  //    type: "phrase"(한국어/일본어/발음 카드) 또는 "note"(참고사항 문구 목록)
   phrases: [
-    { tab: "자주 사용하는 말", korean: "[예시] 조심해", japanese: "気を付けて", reading: "키오츠케테" },
+    { tab: "자주 사용하는 말", type: "phrase", korean: "[예시] 조심해", japanese: "気を付けて", reading: "키오츠케테", content: "" },
+    { tab: "참고사항", type: "note", korean: "", japanese: "", reading: "", content: "[예시] 개인카페를 갈 때는 사진을 찍어도 되는지 확인 필요" },
   ],
 
   // 여행 기본 정보
@@ -774,9 +789,11 @@ async function loadFromSheets() {
     fetchSheetRows(SHEET_TABS.changes),
   ]);
 
-  // 0) 도움되는 것 - 자주 사용하는 말 : tab, korean, japanese, reading
-  DATA.phrases = phrases.filter(r => r.korean || r.japanese).map(r => ({
-    tab: r.tab || '자주 사용하는 말', korean: r.korean || '', japanese: r.japanese || '', reading: r.reading || '',
+  // 0) 도움되는 것 : tab, type(phrase/note), korean, japanese, reading, content
+  DATA.phrases = phrases.filter(r => r.korean || r.japanese || r.content).map(r => ({
+    tab: r.tab || '자주 사용하는 말',
+    type: (r.type || '').toLowerCase().startsWith('note') ? 'note' : 'phrase',
+    korean: r.korean || '', japanese: r.japanese || '', reading: r.reading || '', content: r.content || '',
   }));
 
   // 1) 찬양 악보 : category(japan/korean), title, note, link
@@ -877,7 +894,11 @@ function showPhraseTab(btn) {
     contentEl.innerHTML = emptyState('아직 등록된 내용이 없습니다.');
     return;
   }
-  contentEl.innerHTML = items.map(p => `
+  contentEl.innerHTML = items.map(p => {
+    if (p.type === 'note') {
+      return `<div class="note-item">${escapeHtml(p.content)}</div>`;
+    }
+    return `
     <div class="phrase-item">
       <div class="phrase-kr">${escapeHtml(p.korean)}</div>
       <div class="phrase-jp-row">
@@ -886,7 +907,8 @@ function showPhraseTab(btn) {
         <button class="speak-btn" data-jp="${escapeHtml(p.japanese)}" onclick="speakJapanese(this)" title="일본어 발음 듣기">🔊</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 // 브라우저 내장 음성합성(Web Speech API)으로 일본어 읽어주기 — 별도 서버/비용 없이 동작
 function speakJapanese(btn) {
