@@ -566,12 +566,13 @@
   </div>
 
   <div class="sub-tabs">
-    <button class="sub-tab active" data-target="prep-before" onclick="switchPrepView(this)">출발 전 준비물</button>
-    <button class="sub-tab" data-target="prep-daily" onclick="switchPrepView(this)">일자별 준비물</button>
+    <button class="sub-tab active" data-target="prep-category" onclick="switchPrepView(this)">카테고리별</button>
+    <button class="sub-tab" data-target="prep-daily" onclick="switchPrepView(this)">일자별</button>
   </div>
 
-  <div class="sub-page active" id="prep-before">
-    <ul class="checklist" id="prepBeforeList"></ul>
+  <div class="sub-page active" id="prep-category">
+    <div class="sub-tabs" id="prepCategoryTabs"></div>
+    <div id="prepCategoryContent"></div>
   </div>
 
   <div class="sub-page" id="prep-daily">
@@ -688,18 +689,17 @@ const DATA = {
     day2: [], day3: [], day4: [], day5: [], day6: [], day7: [], day8: [], day9: [],
   },
 
-  // 4-1) 출발 전 준비물
-  prepBefore: [
-    { item: "[예시] 여권 (유효기간 6개월 이상)", note: "출발 최소 1주 전 확인" },
+  // 4) 필요 준비물 — category(출발전/무언극/요리/캠프 등), type(사역/개인, 출발전은 비워둠),
+  //    item, note, day(선택 - day1~day9. 채우면 "일자별" 탭에도 함께 표시됨)
+  prep: [
+    { category: "출발전 공통", type: "", item: "[예시] 여권 (유효기간 6개월 이상)", note: "출발 최소 1주 전 확인", day: "" },
+    { category: "무언극", type: "사역", item: "[예시] 무언극 소품 박스", note: "", day: "day3" },
+    { category: "무언극", type: "개인", item: "[예시] 편한 운동복", note: "", day: "" },
+    { category: "요리", type: "사역", item: "[예시] 조리도구 세트", note: "", day: "" },
+    { category: "요리", type: "개인", item: "[예시] 앞치마", note: "", day: "" },
+    { category: "캠프", type: "사역", item: "[예시] 게임 준비물", note: "", day: "" },
+    { category: "캠프", type: "개인", item: "[예시] 운동화", note: "", day: "" },
   ],
-
-  // 4-2) 일자별 준비물
-  prepDaily: {
-    day1: [
-      { item: "[예시] 여권, 항공권", note: "" },
-    ],
-    day2: [], day3: [], day4: [], day5: [], day6: [], day7: [], day8: [], day9: [],
-  },
 
   // 5) 기타 내용 — 자유 형식 카드
   etc: [
@@ -727,8 +727,7 @@ const SHEET_TABS = {
   devotion: "Devotion",
   scheduleOverview: "ScheduleOverview",
   scheduleDaily: "ScheduleDaily",
-  prepBefore: "PrepBefore",
-  prepDaily: "PrepDaily",
+  prep: "Prep",
   etc: "Etc",
   changes: "Changes",
 };
@@ -757,14 +756,13 @@ function toBool(v) {
 
 // 시트에서 받아온 원시 rows를 기존 DATA 구조 형태로 변환해서 채워 넣음
 async function loadFromSheets() {
-  const [phrases, songs, devotion, schedOverview, schedDaily, prepBefore, prepDaily, etc, changes] = await Promise.all([
+  const [phrases, songs, devotion, schedOverview, schedDaily, prep, etc, changes] = await Promise.all([
     fetchSheetRows(SHEET_TABS.phrases),
     fetchSheetRows(SHEET_TABS.songs),
     fetchSheetRows(SHEET_TABS.devotion),
     fetchSheetRows(SHEET_TABS.scheduleOverview),
     fetchSheetRows(SHEET_TABS.scheduleDaily),
-    fetchSheetRows(SHEET_TABS.prepBefore),
-    fetchSheetRows(SHEET_TABS.prepDaily),
+    fetchSheetRows(SHEET_TABS.prep),
     fetchSheetRows(SHEET_TABS.etc),
     fetchSheetRows(SHEET_TABS.changes),
   ]);
@@ -810,17 +808,10 @@ async function loadFromSheets() {
     }
   });
 
-  // 4-1) 출발 전 준비물 : item, note
-  DATA.prepBefore = prepBefore.filter(r => r.item).map(r => ({ item: r.item, note: r.note || '' }));
-
-  // 4-2) 일자별 준비물 : day, item, note
-  DATA.prepDaily = {};
-  DATA.days.forEach(d => DATA.prepDaily[d.key] = []);
-  prepDaily.forEach(row => {
-    if (row.day && DATA.prepDaily[row.day]) {
-      DATA.prepDaily[row.day].push({ item: row.item || '', note: row.note || '' });
-    }
-  });
+  // 4) 필요 준비물 : category, type(사역/개인), item, note, day(선택)
+  DATA.prep = prep.filter(r => r.item).map(r => ({
+    category: r.category || '기타', type: r.type || '', item: r.item, note: r.note || '', day: r.day || '',
+  }));
 
   // 5) 기타 내용 : title, content
   DATA.etc = etc.filter(r => r.title).map(r => ({ title: r.title, content: r.content || '' }));
@@ -1260,16 +1251,47 @@ function switchPrepView(btn) {
   document.querySelectorAll('#page-prep .sub-page').forEach(p => p.classList.remove('active'));
   document.getElementById(btn.dataset.target).classList.add('active');
 }
-function renderPrepBefore() {
-  const el = document.getElementById('prepBeforeList');
-  if (DATA.prepBefore.length === 0) {
-    el.innerHTML = emptyState('등록된 준비물이 없습니다.');
-    return;
-  }
-  el.innerHTML = DATA.prepBefore.map(p => `
-    <li><div><div>${p.item}</div>${p.note ? `<span class="item-note">${p.note}</span>` : ''}</div></li>
-  `).join('');
+// 사역(단체)/개인/공통(type 미기재)으로 구분
+function classifyPrepItems(items) {
+  return {
+    work: items.filter(p => p.type === '사역'),
+    personal: items.filter(p => p.type === '개인'),
+    common: items.filter(p => p.type !== '사역' && p.type !== '개인'),
+  };
 }
+function renderChecklist(items) {
+  return `<ul class="checklist">` + items.map(p => `
+    <li><div><div>${escapeHtml(p.item)}</div>${p.note ? `<span class="item-note">${escapeHtml(p.note)}</span>` : ''}</div></li>
+  `).join('') + `</ul>`;
+}
+function renderPrepSections(items) {
+  const { work, personal, common } = classifyPrepItems(items);
+  if (items.length === 0) return emptyState('등록된 준비물이 없습니다.');
+  let html = '';
+  if (common.length) html += renderChecklist(common);
+  if (work.length) html += `<div class="section-label">📦 사역 물품 (단체)</div>${renderChecklist(work)}`;
+  if (personal.length) html += `<div class="section-label">🎒 개인 물품</div>${renderChecklist(personal)}`;
+  return html;
+}
+
+function renderPrepCategoryTabs() {
+  const tabsEl = document.getElementById('prepCategoryTabs');
+  const cats = [];
+  (DATA.prep || []).forEach(p => { const c = p.category || '기타'; if (!cats.includes(c)) cats.push(c); });
+  if (cats.length === 0) cats.push('출발전 공통');
+  tabsEl.innerHTML = cats.map((c, i) =>
+    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-cat="${escapeHtml(c)}" onclick="showPrepCategory(this)">${c}</button>`
+  ).join('');
+  showPrepCategory(tabsEl.querySelector('.sub-tab'));
+}
+function showPrepCategory(btn) {
+  document.querySelectorAll('#prepCategoryTabs .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const cat = btn.dataset.cat;
+  const items = (DATA.prep || []).filter(p => (p.category || '기타') === cat);
+  document.getElementById('prepCategoryContent').innerHTML = renderPrepSections(items);
+}
+
 function renderPrepDayTabs() {
   const tabsEl = document.getElementById('prepDayTabs');
   tabsEl.innerHTML = DATA.days.map((d, i) =>
@@ -1280,15 +1302,9 @@ function renderPrepDayTabs() {
 function showPrepDay(key, btn) {
   document.querySelectorAll('#prepDayTabs .day-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  const list = DATA.prepDaily[key] || [];
+  const items = (DATA.prep || []).filter(p => p.day === key);
   const contentEl = document.getElementById('prepDailyContent');
-  if (list.length === 0) {
-    contentEl.innerHTML = emptyState(`${dayLabel(key)} 준비물이 아직 등록되지 않았습니다.`);
-    return;
-  }
-  contentEl.innerHTML = `<ul class="checklist">` + list.map(p => `
-    <li><div><div>${p.item}</div>${p.note ? `<span class="item-note">${p.note}</span>` : ''}</div></li>
-  `).join('') + `</ul>`;
+  contentEl.innerHTML = items.length ? renderPrepSections(items) : emptyState(`${dayLabel(key)} 준비물이 아직 등록되지 않았습니다.`);
 }
 
 /* ---------- 5) 기타 내용 ---------- */
@@ -1344,7 +1360,7 @@ function renderAll() {
   renderDevotionTabs();
   renderOverviewTable();
   renderScheduleDayTabs();
-  renderPrepBefore();
+  renderPrepCategoryTabs();
   renderPrepDayTabs();
   renderEtc();
   renderChanges();
