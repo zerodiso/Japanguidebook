@@ -150,6 +150,59 @@
   .card-sub { font-size: 11px; color: #888; margin: 0 0 8px; }
   .card-body { font-size: 13px; color: #333; white-space: pre-line; }
 
+  /* ===== 말씀 묵상 : 주제/본문/절 구분 ===== */
+  .devo-topic {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0F6E56;
+    letter-spacing: 0.02em;
+    margin: 0 0 6px;
+  }
+  .devo-verse { margin: 8px 0 16px; }
+  .verse-line {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.6;
+    margin: 0 0 6px;
+  }
+  .devo-questions { margin-top: 14px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px; }
+  .devo-questions-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 10px;
+  }
+  .devo-question { margin-bottom: 14px; }
+  .devo-question-text { font-size: 13.5px; font-weight: 600; color: #1a1a1a; margin: 0 0 6px; }
+  .devo-answer-input {
+    width: 100%;
+    min-height: 64px;
+    padding: 8px 10px;
+    border: 1px solid rgba(0,0,0,0.14);
+    border-radius: 8px;
+    background: #fafaf7;
+    color: #1a1a1a;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+  }
+  .devo-answer-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .devo-save-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: #0F6E56;
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .devo-save-btn:active { background: #0b5946; }
+  .devo-save-status { font-size: 11.5px; color: #0F6E56; font-weight: 600; }
+
   .empty-state {
     text-align: center;
     padding: 32px 16px;
@@ -667,7 +720,7 @@ const DATA = {
 
   // 2) 말씀 묵상 — day 키에 맞춰 채우기 (없는 날은 빈 배열 [] 로 두면 "준비중" 표시)
   devotion: {
-    day1: { title: "[예시] 부르심에 응답하다", verse: "[예시] 이사야 6:8", content: "[예시] 오늘 본문 묵상 내용을 이 자리에 채워주세요." },
+    day1: { topic: "[예시] 도착감사예배", title: "[예시] 에베소서 2:1-10", verse: "[예시] 1너희의 허물과 죄로 죽었던 너희를 살리셨도다 2그 때에 너희가 그 가운데서 행하여 이 세상 풍속을 좇고", content: "[예시] 1) 여러분의 마음은 어떤가요\n[예시] 2) 이곳에서 어떤 마음으로 살 것인가요" },
     day2: null,
     day3: null,
     day4: null,
@@ -806,11 +859,14 @@ async function loadFromSheets() {
     if (row.title) DATA.songs[group].push({ title: row.title, note: row.note || '', link: row.link || '' });
   });
 
-  // 2) 말씀 묵상 : day, title, verse, content
+  // 2) 말씀 묵상 : day, topic, title, verse, content
+  //    - topic : 그날의 주제/행사 등 짧은 소개 (title 위에 표시, 없어도 됨)
+  //    - verse : 시트 셀 안에서 절 사이에 줄바꿈(Alt+Enter)을 넣지 않아도, 절 번호를 기준으로 자동 줄바꿈됨
+  //    - content : 묵상 질문. 질문마다 줄바꿈으로 구분해서 입력 (예: "1) ...\n2) ...")
   DATA.devotion = {};
   DATA.days.forEach(d => DATA.devotion[d.key] = null);
   devotion.forEach(row => {
-    if (row.day) DATA.devotion[row.day] = { title: row.title, verse: row.verse, content: row.content };
+    if (row.day) DATA.devotion[row.day] = { topic: row.topic || '', title: row.title, verse: row.verse, content: row.content };
   });
 
   // 3-1) 전체 일정계획표(그리드) : time, day1, day2, ... day9  (각 셀 = 그 날짜의 그 시간대 활동)
@@ -997,6 +1053,64 @@ function renderDevotionTabs() {
   ).join('');
   showDevotion(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
 }
+// 절 본문을 한 줄씩 나눠서 보여주기 위한 처리
+// - 시트 셀 안에서 이미 줄바꿈(Alt+Enter)을 넣었다면 그 줄바꿈 그대로 사용
+// - 줄바꿈 없이 "1너희의...2그 때에..." 식으로 절 번호가 붙어서 쭉 이어진 경우, 절 번호 앞에서 자동으로 줄을 나눔
+function formatVerseLines(verseText) {
+  if (!verseText) return '';
+  let lines;
+  if (verseText.includes('\n')) {
+    lines = verseText.split('\n');
+  } else {
+    lines = verseText.split(/(?=\d+)/);
+  }
+  lines = lines.map(l => l.trim()).filter(Boolean);
+  return lines.map(l => `<p class="verse-line">${escapeHtml(l)}</p>`).join('');
+}
+
+// 묵상 질문(content) : 줄바꿈 기준으로 질문을 나누고, 각 질문 아래에 개인 답변을 적고 저장할 수 있는 입력창을 붙임
+// 저장은 이 기기(브라우저)의 localStorage에 저장되어, 같은 기기로 다시 들어오면 자동으로 불러와짐
+function renderDevotionQuestions(dayKey, contentText) {
+  if (!contentText) return '';
+  const lines = contentText.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return '';
+  return `
+    <div class="devo-questions">
+      <p class="devo-questions-label">묵상 질문 &amp; 나의 답</p>
+      ${lines.map((line, i) => {
+        const storageKey = `devoAnswer_${dayKey}_${i}`;
+        const saved = localStorage.getItem(storageKey) || '';
+        return `
+          <div class="devo-question">
+            <p class="devo-question-text">${escapeHtml(line)}</p>
+            <textarea class="devo-answer-input" data-key="${storageKey}" placeholder="이곳에 나의 생각을 적어보세요">${escapeHtml(saved)}</textarea>
+            <div class="devo-answer-actions">
+              <button class="devo-save-btn" onclick="saveDevotionAnswer(this)">저장</button>
+              <span class="devo-save-status"></span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function saveDevotionAnswer(btn) {
+  const wrap = btn.closest('.devo-question');
+  const textarea = wrap.querySelector('.devo-answer-input');
+  const status = wrap.querySelector('.devo-save-status');
+  localStorage.setItem(textarea.dataset.key, textarea.value);
+  status.textContent = '저장됨 ✓';
+  setTimeout(() => { status.textContent = ''; }, 2000);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function showDevotion(key, btn) {
   document.querySelectorAll('#devotionDayTabs .day-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
@@ -1008,9 +1122,10 @@ function showDevotion(key, btn) {
   }
   contentEl.innerHTML = `
     <div class="card">
-      <p class="card-title">${d.title}</p>
-      <p class="card-sub">${d.verse}</p>
-      <p class="card-body">${d.content}</p>
+      ${d.topic ? `<p class="devo-topic">${escapeHtml(d.topic)}</p>` : ''}
+      <p class="card-title">${escapeHtml(d.title)}</p>
+      <div class="devo-verse">${formatVerseLines(d.verse)}</div>
+      ${renderDevotionQuestions(key, d.content)}
     </div>
   `;
 }
