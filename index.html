@@ -1,1593 +1,170 @@
 <!DOCTYPE html>
+<!-- 이 문서는 HTML5라는 최신 웹 언어로 작성되었다는 것을 브라우저에게 알려줍니다 -->
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0F6E56">
-<title>일본 단기선교 가이드북</title>
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
-    margin: 0;
-    padding: 16px;
-    background: #fafaf7;
-    color: #1a1a1a;
-    line-height: 1.5;
-    max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-bottom: 60px;
-  }
+<!-- 컴퓨터에게 이 문서를 해석하는 방식을 알려주는 보이지 않는 '설정' 영역입니다 -->
+<meta charset="UTF-8"> <!-- 한글이 깨지지 않도록 하는 설정 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 스마트폰 화면 크기에 딱 맞게 웹페이지를 띄우라는 명령어 (반응형) -->
+<meta name="theme-color" content="#0F6E56"> <!-- 모바일 브라우저 상단(주소창)의 테마 색상을 지정합니다 -->
+<title>일본 단기선교 가이드북</title> <!-- 브라우저 탭에 표시되는 웹사이트의 이름입니다 -->
 
-  /* ===== Header ===== */
-  header.app-header {
-    padding: 8px 4px 16px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-  }
-  h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
-  .subtitle { font-size: 13px; color: #666; margin: 0; }
-
-  /* ===== Home menu grid ===== */
-  .menu-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .menu-card {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 14px;
-    padding: 18px 14px;
-    text-align: left;
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: transform 0.1s, box-shadow 0.15s;
-  }
-  .menu-card:active { transform: scale(0.97); }
-  .menu-card .icon { font-size: 24px; }
-  .menu-card .label { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-  .menu-card .desc { font-size: 11px; color: #888; line-height: 1.4; }
-  .menu-card.changes { border-left: 3px solid #BA7517; background: #fffdf7; }
-
-  /* ===== Section (sub-page) shell ===== */
-  .page { display: none; }
-  .page.active { display: block; }
-  #home.page { display: block; }
-
-  .page-header {
-    position: sticky;
-    top: 0;
-    background: #fafaf7;
-    padding: 8px 0 12px;
-    margin-bottom: 12px;
-    z-index: 20;
-    border-bottom: 1px solid rgba(0,0,0,0.06);
-  }
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: none;
-    border: none;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    color: #0F6E56;
-    padding: 6px 0;
-    cursor: pointer;
-    margin-bottom: 4px;
-  }
-  .page-title { font-size: 18px; font-weight: 700; margin: 0; }
-
-  /* ===== Sub tabs (within a section) ===== */
-  .sub-tabs {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-  .sub-tab {
-    flex: 1;
-    min-width: 80px;
-    padding: 9px 4px;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #444;
-    cursor: pointer;
-    text-align: center;
-    font-family: inherit;
-  }
-  .sub-tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-
-  /* ===== Day tabs (horizontal scroll for 9 days) ===== */
-  .day-tabs {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .day-tabs::-webkit-scrollbar { height: 4px; }
-  .day-tab {
-    flex: 0 0 auto;
-    min-width: 58px;
-    padding: 8px 6px;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 500;
-    color: #444;
-    cursor: pointer;
-    text-align: center;
-    font-family: inherit;
-  }
-  .day-tab.active { background: #0F6E56; color: #fff; border-color: #0F6E56; }
-  .day-tab-date { display: block; font-size: 9px; font-weight: 400; opacity: 0.8; margin-top: 2px; }
-
-  .sub-page { display: none; }
-  .sub-page.active { display: block; }
-
-  /* ===== Generic content cards ===== */
-  .card {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-  .card-title { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
-  .card-sub { font-size: 11px; color: #888; margin: 0 0 8px; }
-  .card-body { font-size: 13px; color: #333; white-space: pre-line; }
-
-  /* ===== 말씀 묵상 : 주제/본문/절 구분 ===== */
-  .devo-topic {
-    font-size: 12px;
-    font-weight: 700;
-    color: #0F6E56;
-    letter-spacing: 0.02em;
-    margin: 0 0 6px;
-  }
-  .devo-verse { margin: 8px 0 16px; }
-  .verse-line {
-    font-size: 13px;
-    color: #333;
-    line-height: 1.6;
-    margin: 0 0 6px;
-  }
-  .devo-questions { margin-top: 14px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px; }
-  .devo-questions-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 10px;
-  }
-  .devo-question { margin-bottom: 14px; }
-  .devo-question-text { font-size: 13.5px; font-weight: 600; color: #1a1a1a; margin: 0 0 6px; }
-  .devo-answer-input {
-    width: 100%;
-    min-height: 64px;
-    padding: 8px 10px;
-    border: 1px solid rgba(0,0,0,0.14);
-    border-radius: 8px;
-    background: #fafaf7;
-    color: #1a1a1a;
-    font-family: inherit;
-    font-size: 13px;
-    resize: vertical;
-  }
-  .devo-answer-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-  .devo-save-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 8px;
-    background: #0F6E56;
-    color: #fff;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .devo-save-btn:active { background: #0b5946; }
-  .devo-save-status { font-size: 11.5px; color: #0F6E56; font-weight: 600; }
-
-  .empty-state {
-    text-align: center;
-    padding: 32px 16px;
-    color: #999;
-    font-size: 13px;
-    background: #fff;
-    border: 1px dashed rgba(0,0,0,0.15);
-    border-radius: 10px;
-  }
-
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 18px 0 8px;
-  }
-  .section-label:first-child { margin-top: 0; }
-
-  /* ===== Schedule list items (day-by-day timetable) ===== */
-  .sched-item {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 10px;
-    padding: 11px 14px;
-    margin-bottom: 8px;
-    display: flex;
-    gap: 10px;
-  }
-  .sched-time {
-    font-size: 12px;
-    font-weight: 700;
-    color: #0F6E56;
-    min-width: 44px;
-    flex-shrink: 0;
-    font-variant-numeric: tabular-nums;
-  }
-  .sched-body { flex: 1; }
-  .sched-activity { font-size: 13.5px; font-weight: 600; color: #1a1a1a; margin: 0 0 2px; }
-  .sched-place { font-size: 11.5px; color: #888; }
-  .sched-note { font-size: 11.5px; color: #A32D2D; margin-top: 3px; }
-
-  /* 오늘 날짜와 현재 진행 중인 일정 강조 */
-  .day-tab.today:not(.active) {
-    background: #fff4d8;
-    border-color: #BA7517;
-    color: #7a470f;
-    box-shadow: inset 0 0 0 1px rgba(186,117,23,0.12);
-  }
-  .day-tab.today.active {
-    background: #BA7517;
-    border-color: #BA7517;
-    color: #fff;
-  }
-  .sched-item.current {
-    background: #e9f7f1;
-    border: 2px solid #0F6E56;
-    padding: 10px 13px;
-    box-shadow: 0 4px 12px rgba(15,110,86,0.12);
-  }
-  .sched-item.current .sched-time { color: #0b5946; }
-  .sched-current-badge {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: #0F6E56;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    vertical-align: 1px;
-  }
-
-
-  /* 일정 강조 기준 시각 테스트 */
-  .schedule-time-control {
-    background: #fffdf7;
-    border: 1px solid rgba(186,117,23,0.28);
-    border-left: 4px solid #BA7517;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-  .schedule-time-control-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #6f410f;
-    margin-bottom: 3px;
-  }
-  .schedule-time-control-help {
-    font-size: 11px;
-    color: #888;
-    margin-bottom: 9px;
-  }
-  .schedule-time-control-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .schedule-time-input {
-    flex: 1 1 220px;
-    min-width: 0;
-    padding: 9px 10px;
-    border: 1px solid rgba(0,0,0,0.16);
-    border-radius: 8px;
-    background: #fff;
-    color: #1a1a1a;
-    font-family: inherit;
-    font-size: 13px;
-  }
-  .schedule-time-reset {
-    flex: 0 0 auto;
-    padding: 9px 11px;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 8px;
-    background: #f0f0ec;
-    color: #444;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .schedule-time-reset:active { background: #e3e3dc; }
-  .schedule-time-status {
-    margin-top: 8px;
-    font-size: 11.5px;
-    color: #0F6E56;
-  }
-  .schedule-time-status.testing {
-    color: #8a4f0c;
-    font-weight: 600;
-  }
-
-  /* ===== Overview table (전체 일정계획표 - 그리드형) ===== */
-  .overview-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); }
-  .overview-table {
-    border-collapse: collapse;
-    font-size: 11px;
-    width: 100%;
-    /* 👉 날짜별 칸 너비를 여기서 직접 조절하세요. 숫자를 늘리면 한 줄에 더 많은 글자가 들어가고, 줄이면 좁아집니다.
-       (지금 값은 한 줄에 한글 8자 정도가 들어가도록 맞춘 값입니다) */
-    --overview-col-width: 112px;
-  }
-  .overview-table th, .overview-table td {
-    border: 1px solid rgba(0,0,0,0.08);
-    padding: 6px 4px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 1.3;
-  }
-  .overview-table td { white-space: pre-line; }
-  .overview-table th:not(:first-child),
-  .overview-table td:not(:first-child) {
-    width: var(--overview-col-width);
-    min-width: var(--overview-col-width);
-    max-width: var(--overview-col-width);
-  }
-  .overview-table th {
-    background: #f0f0ec;
-    font-weight: 700;
-    font-size: 11px;
-    color: #444;
-  }
-  .overview-table th:first-child, .overview-table td:first-child {
-    position: sticky;
-    left: 0;
-    background: #f7f7f3;
-    font-weight: 600;
-    color: #0F6E56;
-    white-space: nowrap;
-    font-size: 10px;
-    z-index: 2;
-  }
-  .overview-table th:first-child { z-index: 3; }
-
-  /* ===== Phrase list (도움되는 것 - 자주 사용하는 말) ===== */
-  .phrase-item {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 8px;
-  }
-  .phrase-kr { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
-  .phrase-jp-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .phrase-jp { font-size: 14px; color: #0F6E56; font-weight: 600; }
-  .phrase-reading { font-size: 12px; color: #888; }
-  .speak-btn {
-    margin-left: auto;
-    background: #f0f0ec;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .speak-btn:active { background: #0F6E56; }
-
-  .note-item {
-    background: #fffdf5;
-    border: 1px solid rgba(186,117,23,0.25);
-    border-left: 3px solid #BA7517;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: #444;
-    line-height: 1.5;
-  }
-  .note-item::before { content: "📌 "; }
-
-  /* ===== Checklist (준비물) ===== */
-  .checklist { list-style: none; padding: 0; margin: 0; }
-  .checklist li {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    font-size: 13px;
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-  }
-  .checklist li::before { content: "☐"; color: #0F6E56; font-size: 14px; flex-shrink: 0; }
-  .checklist .item-note { display: block; font-size: 11px; color: #888; margin-top: 2px; }
-
-  /* ===== Song list (찬양 악보) ===== */
-  .song-item {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .song-num { font-size: 11px; color: #aaa; font-weight: 600; min-width: 18px; }
-  .song-title { font-size: 13.5px; font-weight: 500; flex: 1; }
-  .song-note { font-size: 11px; color: #888; }
-  .score-toggle-btn {
-    font-size: 11px;
-    font-weight: 600;
-    color: #fff;
-    background: #0F6E56;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    white-space: nowrap;
-    font-family: inherit;
-  }
-  .song-item-wrap { margin-bottom: 6px; }
-  .score-preview {
-    margin-top: 6px;
-    background: #f4f4f0;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 8px;
-    padding: 6px;
-  }
-  .score-preview iframe, .score-preview img { display: block; width: 100%; border-radius: 6px; }
-
-  /* ===== Changes / update log ===== */
-  .change-item {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-left: 4px solid #ccc;
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-  }
-  .change-item.is-new { border-left-color: #BA7517; background: #fffdf5; }
-  .change-item.is-urgent { border-left-color: #A32D2D; background: #fdecec; }
-  .change-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
-  .change-date { font-size: 11px; color: #888; font-variant-numeric: tabular-nums; }
-  .change-tag {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: #f0f0ec;
-    color: #555;
-  }
-  .change-tag.urgent { background: #A32D2D; color: #fff; }
-  .change-tag.new { background: #BA7517; color: #fff; }
-  .change-title { font-size: 14px; font-weight: 600; margin: 2px 0 4px; }
-  .change-body { font-size: 13px; color: #444; white-space: pre-line; }
-
-  footer {
-    text-align: center;
-    font-size: 11px;
-    color: #aaa;
-    margin-top: 24px;
-    padding-top: 12px;
-  }
-</style>
+<!-- 분리해둔 style.css(디자인 파일)를 이 뼈대에 연결하라는 명령어입니다 -->
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- 실제로 사용자 눈에 보이는 화면(버튼, 글씨 등)은 모두 body 태그 안에 들어갑니다 -->
+
+<!-- 
+  [페이지 시스템의 원리]
+  .page 라는 클래스(별명)를 가진 <div> 상자들이 각각의 화면(페이지) 역할을 합니다.
+  처음에는 모두 숨겨져 있다가, 'active(활성화)'라는 별명이 붙은 상자만 화면에 나타납니다.
+-->
 
 <!-- ============================================================ -->
-<!-- HOME -->
+<!-- 🏠 HOME (메인 화면) -->
 <!-- ============================================================ -->
 <div class="page active" id="home">
-  <header class="app-header">
+  <!-- header: 페이지 맨 위의 제목과 설명을 묶어주는 상자 -->
+  <header class="app-header" style="position: relative;">
     <h1 id="tripTitle">일본 단기선교 가이드북</h1>
     <p class="subtitle" id="tripSubtitle">2026.08.04(화) ~ 08.12(수) · 8박 9일</p>
+    <!-- 나중에 자바스크립트가 데이터를 다 불러오면 이 글씨를 '완료'로 바꿔줍니다 -->
     <p class="subtitle" id="loadStatus" style="margin-top:6px; font-size:11px;">📡 최신 정보를 불러오는 중...</p>
+    
+    <!-- a 태그는 링크를 걸어줍니다. target="_blank"는 새 창(새 탭)에서 열라는 뜻입니다 -->
+    <a href="https://docs.google.com/spreadsheets/d/1e-fYMtnsH_Z8fdBgo5kqwZUlab_QvftwzfP87UHCWTc/edit" target="_blank" class="sheet-link-btn">📝 시트 수정</a>
   </header>
 
+  <!-- 메인 메뉴 버튼들을 바둑판 모양으로 담아두는 큰 상자 -->
   <div class="menu-grid">
-    <button class="menu-card" onclick="goTo('page-helpful')">
-      <span class="icon">🗣️</span>
-      <span class="label">도움되는 것</span>
-      <span class="desc">자주 사용하는 말 등 참고 자료</span>
-    </button>
-    <button class="menu-card" onclick="goTo('page-songs')">
-      <span class="icon">🎵</span>
-      <span class="label">찬양 악보</span>
-      <span class="desc">일본어 · 한국어 찬양 리스트</span>
-    </button>
-    <button class="menu-card" onclick="goTo('page-devotion')">
-      <span class="icon">📖</span>
-      <span class="label">말씀 묵상</span>
-      <span class="desc">일자별 본문 및 묵상</span>
-    </button>
-    <button class="menu-card" onclick="goTo('page-schedule')">
-      <span class="icon">📅</span>
-      <span class="label">일정</span>
-      <span class="desc">전체 일정표 · 일자별 시간표</span>
-    </button>
-    <button class="menu-card" onclick="goTo('page-prep')">
-      <span class="icon">🎒</span>
-      <span class="label">필요 준비물</span>
-      <span class="desc">출발 전 · 일자별 준비물</span>
-    </button>
-    <button class="menu-card" onclick="goTo('page-etc')">
-      <span class="icon">📌</span>
-      <span class="label">기타 내용</span>
-      <span class="desc">공지 및 참고사항</span>
-    </button>
-    <button class="menu-card changes" onclick="goTo('page-changes')">
-      <span class="icon">🔔</span>
-      <span class="label">변경사항</span>
-      <span class="desc">현지 업데이트 확인</span>
-    </button>
+    <!-- onclick="goTo('아이디')": 이 버튼을 클릭하면 자바스크립트에게 '아이디' 페이지로 이동시켜달라고 명령합니다 -->
+    <button class="menu-card" onclick="goTo('page-helpful')"><span class="icon">🗣️</span><span class="label">도움되는 것</span><span class="desc">자주 사용하는 말 등 참고 자료</span></button>
+    <button class="menu-card" onclick="goTo('page-songs')"><span class="icon">🎵</span><span class="label">찬양 악보</span><span class="desc">일본어 · 한국어 찬양 리스트</span></button>
+    <button class="menu-card" onclick="goTo('page-devotion')"><span class="icon">📖</span><span class="label">말씀 묵상</span><span class="desc">일자별 본문 및 묵상</span></button>
+    <button class="menu-card" onclick="goTo('page-schedule')"><span class="icon">📅</span><span class="label">일정</span><span class="desc">전체 일정표 · 일자별 시간표</span></button>
+    <button class="menu-card" onclick="goTo('page-prep')"><span class="icon">🎒</span><span class="label">필요 준비물</span><span class="desc">출발 전 · 일자별 준비물</span></button>
+    <button class="menu-card" onclick="goTo('page-etc')"><span class="icon">📌</span><span class="label">기타 내용</span><span class="desc">공지 및 참고사항</span></button>
+    <button class="menu-card changes" onclick="goTo('page-changes')"><span class="icon">🔔</span><span class="label">변경사항</span><span class="desc">현지 업데이트 확인</span></button>
+    <button class="menu-card memo" onclick="goTo('page-memo')"><span class="icon">✍️</span><span class="label">개인 메모</span><span class="desc">나만의 메모장 (로컬 저장)</span></button>
   </div>
 
-  <footer>일본 단기선교팀 가이드북</footer>
+  <footer>일본 단기선교팀 가이드북</footer> <!-- 페이지 맨 밑 꼬리말 -->
 </div>
 
 <!-- ============================================================ -->
-<!-- 0) 도움되는 것 -->
+<!-- 0) 도움되는 것 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-helpful">
   <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
+    <button class="back-btn" onclick="goHome()">← 홈으로</button> <!-- 뒤로가기 버튼 -->
     <h2 class="page-title">🗣️ 도움되는 것</h2>
   </div>
-
+  <!-- 
+    주의! 아래 <div> 상자들은 텅 비어있습니다.
+    자바스크립트가 구글 시트에서 데이터를 가져온 뒤, 이 빈 상자(id)를 찾아내어 안에 내용을 자동으로 채워 넣습니다.
+  -->
   <div class="sub-tabs" id="phraseTabs"></div>
   <div id="phraseContent"></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 1) 찬양 악보 -->
+<!-- 1) 찬양 악보 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-songs">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">🎵 찬양 악보 리스트</h2>
-  </div>
-
-  <div class="sub-tabs" id="songTabs"></div>
-  <div id="songContent"></div>
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">🎵 찬양 악보 리스트</h2></div>
+  <div class="sub-tabs" id="songTabs"></div><div id="songContent"></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 2) 말씀 묵상 -->
+<!-- 2) 말씀 묵상 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-devotion">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">📖 말씀 묵상</h2>
-  </div>
-
-  <div class="day-tabs" id="devotionDayTabs"></div>
-  <div id="devotionContent"></div>
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">📖 말씀 묵상</h2></div>
+  <div class="day-tabs" id="devotionDayTabs"></div><div id="devotionContent"></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 3) 일정 -->
+<!-- 3) 일정 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-schedule">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">📅 일정</h2>
-  </div>
-
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">📅 일정</h2></div>
+  
+  <!-- 페이지 안의 서브 메뉴 (전체표 / 일자별) -->
   <div class="sub-tabs">
     <button class="sub-tab active" data-target="sched-overview" onclick="switchScheduleView(this)">전체 일정표</button>
     <button class="sub-tab" data-target="sched-daily" onclick="switchScheduleView(this)">일자별 시간표</button>
   </div>
-
-  <div class="sub-page active" id="sched-overview">
-    <div id="overviewTableWrap"></div>
-  </div>
-
+  
+  <!-- 서브 메뉴 버튼을 누를 때마다 아래 sub-page 둘 중 하나만 active가 되어 보여집니다 -->
+  <div class="sub-page active" id="sched-overview"><div id="overviewTableWrap"></div></div>
   <div class="sub-page" id="sched-daily">
+    <!-- 개발자용 일정 시간 테스트 패널 -->
     <div class="schedule-time-control">
       <div class="schedule-time-control-title">🧪 강조 시간 테스트</div>
       <div class="schedule-time-control-help">날짜와 시간을 선택하면 그 시각을 기준으로 표시합니다. 입력값을 비우면 실시간으로 돌아갑니다.</div>
       <div class="schedule-time-control-row">
-        <input
-          class="schedule-time-input"
-          id="scheduleTestDateTime"
-          type="datetime-local"
-          aria-label="일정 강조 테스트 날짜와 시간"
-          onchange="applyScheduleTestDateTime(this.value)"
-        >
+        <!-- type="datetime-local"은 달력과 시간 선택기 팝업을 띄워주는 HTML 기본 기능입니다 -->
+        <input class="schedule-time-input" id="scheduleTestDateTime" type="datetime-local" onchange="applyScheduleTestDateTime(this.value)">
         <button class="schedule-time-reset" type="button" onclick="clearScheduleTestDateTime()">실시간으로</button>
       </div>
       <div class="schedule-time-status" id="scheduleTimeStatus">현재 기기 시각을 기준으로 표시합니다.</div>
     </div>
-    <div class="day-tabs" id="scheduleDayTabs"></div>
-    <div id="scheduleContent"></div>
+    <div class="day-tabs" id="scheduleDayTabs"></div><div id="scheduleContent"></div>
   </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 4) 필요 준비물 -->
+<!-- 4) 필요 준비물 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-prep">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">🎒 필요 준비물</h2>
-  </div>
-
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">🎒 필요 준비물</h2></div>
   <div class="sub-tabs">
     <button class="sub-tab active" data-target="prep-category" onclick="switchPrepView(this)">카테고리별</button>
     <button class="sub-tab" data-target="prep-daily" onclick="switchPrepView(this)">일자별</button>
   </div>
-
-  <div class="sub-page active" id="prep-category">
-    <div class="sub-tabs" id="prepCategoryTabs"></div>
-    <div id="prepCategoryContent"></div>
-  </div>
-
-  <div class="sub-page" id="prep-daily">
-    <div class="day-tabs" id="prepDayTabs"></div>
-    <div id="prepDailyContent"></div>
-  </div>
+  <div class="sub-page active" id="prep-category"><div class="sub-tabs" id="prepCategoryTabs"></div><div id="prepCategoryContent"></div></div>
+  <div class="sub-page" id="prep-daily"><div class="day-tabs" id="prepDayTabs"></div><div id="prepDailyContent"></div></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 5) 기타 내용 -->
+<!-- 5) 기타 내용 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-etc">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">📌 기타 내용</h2>
-  </div>
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">📌 기타 내용</h2></div>
   <div id="etcContent"></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 6) 변경사항 -->
+<!-- 6) 변경사항 페이지 -->
 <!-- ============================================================ -->
 <div class="page" id="page-changes">
-  <div class="page-header">
-    <button class="back-btn" onclick="goHome()">← 홈으로</button>
-    <h2 class="page-title">🔔 변경사항</h2>
-  </div>
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">🔔 변경사항</h2></div>
   <div id="changesContent"></div>
 </div>
 
-
-<script>
-/* ============================================================
-   📦 DATA — 실제 정보는 이 안의 값만 채우거나 교체하면 됩니다.
-   구조(뼈대/CSS/함수)는 건드리지 않아도 콘텐츠가 자동으로 반영됩니다.
-   각 배열의 첫 항목은 형식을 보여주는 [예시]이니, 실제 정보로 교체/추가하세요.
-   ============================================================ */
-
-const DATA = {
-
-  // 0) 도움되는 것 (tab 값이 같은 것끼리 자동으로 하위 탭이 생성됨)
-  //    type: "phrase"(한국어/일본어/발음 카드) 또는 "note"(참고사항 문구 목록)
-  phrases: [
-    { tab: "자주 사용하는 말", type: "phrase", korean: "[예시] 조심해", japanese: "気を付けて", reading: "키오츠케테", content: "" },
-    { tab: "참고사항", type: "note", korean: "", japanese: "", reading: "", content: "[예시] 개인카페를 갈 때는 사진을 찍어도 되는지 확인 필요" },
-  ],
-
-  // 여행 기본 정보
-  trip: {
-    title: "일본 단기선교 가이드북",
-    subtitle: "2026.08.04(화) ~ 08.12(수) · 8박 9일",
-  },
-
-  // 일자 목록 (day 탭에 공통으로 사용됨) — 필요시 날짜/요일만 수정
-  days: [
-    { key: "day1", label: "1일차", date: "8/4(화)" },
-    { key: "day2", label: "2일차", date: "8/5(수)" },
-    { key: "day3", label: "3일차", date: "8/6(목)" },
-    { key: "day4", label: "4일차", date: "8/7(금)" },
-    { key: "day5", label: "5일차", date: "8/8(토)" },
-    { key: "day6", label: "6일차", date: "8/9(일)" },
-    { key: "day7", label: "7일차", date: "8/10(월)" },
-    { key: "day8", label: "8일차", date: "8/11(화)" },
-    { key: "day9", label: "9일차", date: "8/12(수)" },
-  ],
-
-  // 1) 찬양 악보 — japan / korean 배열에 곡 추가
-  songs: {
-    both: [
-      { title: "[예시] 주기도문 (한일 합본)", note: "한국어+일본어 병기" },
-    ],
-    japan: [
-      { title: "[예시] きよしこの夜 (고요한 밤 거룩한 밤)", note: "Key G" },
-    ],
-    korean: [
-      { title: "[예시] 주 은혜임을", note: "Key D" },
-    ],
-  },
-
-  // 2) 말씀 묵상 — day 키에 맞춰 채우기 (없는 날은 빈 배열 [] 로 두면 "준비중" 표시)
-  devotion: {
-    day1: { topic: "[예시] 도착감사예배", title: "[예시] 에베소서 2:1-10", verse: "[예시] 1너희의 허물과 죄로 죽었던 너희를 살리셨도다 2그 때에 너희가 그 가운데서 행하여 이 세상 풍속을 좇고", content: "[예시] 1) 여러분의 마음은 어떤가요\n[예시] 2) 이곳에서 어떤 마음으로 살 것인가요" },
-    day2: null,
-    day3: null,
-    day4: null,
-    day5: null,
-    day6: null,
-    day7: null,
-    day8: null,
-    day9: null,
-  },
-
-  // 3-1) 전체 일정계획표 (그리드형) — 구글 시트 연동 전 화면 확인용 예시 데이터입니다.
-  //     (실제 서비스에서는 이 값을 직접 관리하지 않아도 됩니다 — 아래 3-2) scheduleDaily 데이터를 바탕으로 자동 생성됩니다)
-  //     slots: 시간대 목록 (표의 행), byDay: 각 day 키별로 slots와 같은 길이의 활동 배열 (표의 열)
-  //     같은 날짜(열)에서 연속된 시간대에 같은 문구를 넣으면 자동으로 셀이 합쳐져서 표시됨
-  scheduleOverview: {
-    slots: ["8:00~9:00", "9:00~10:00", "10:00~11:00"],
-    byDay: {
-      day1: ["[예시] 일본 출발", "[예시] 일본 출발", "[예시] 일본 출발"],
-      day2: ["", "", ""],
-      day3: ["", "", ""],
-      day4: ["", "", ""],
-      day5: ["", "", ""],
-      day6: ["", "", ""],
-      day7: ["", "", ""],
-      day8: ["", "", ""],
-      day9: ["", "", ""],
-    },
-  },
-
-  // 3-2) 일자별 상세 시간표 — day 키별로 시간순 배열
-  scheduleDaily: {
-    day1: [
-      { time: "09:00", activity: "[예시] 인천공항 집결", place: "인천공항 3층", note: "여권 지참 필수" },
-    ],
-    day2: [], day3: [], day4: [], day5: [], day6: [], day7: [], day8: [], day9: [],
-  },
-
-  // 4) 필요 준비물 — category(출발전/무언극/요리/캠프 등), type(사역/개인, 출발전은 비워둠),
-  //    item, note, day(선택 - day1~day9. 채우면 "일자별" 탭에도 함께 표시됨)
-  prep: [
-    { category: "출발전 공통", type: "", item: "[예시] 여권 (유효기간 6개월 이상)", note: "출발 최소 1주 전 확인", day: "" },
-    { category: "무언극", type: "사역", item: "[예시] 무언극 소품 박스", note: "", day: "day3" },
-    { category: "무언극", type: "개인", item: "[예시] 편한 운동복", note: "", day: "" },
-    { category: "요리", type: "사역", item: "[예시] 조리도구 세트", note: "", day: "" },
-    { category: "요리", type: "개인", item: "[예시] 앞치마", note: "", day: "" },
-    { category: "캠프", type: "사역", item: "[예시] 게임 준비물", note: "", day: "" },
-    { category: "캠프", type: "개인", item: "[예시] 운동화", note: "", day: "" },
-  ],
-
-  // 5) 기타 내용 — 자유 형식 카드
-  etc: [
-    { title: "[예시] 환전 안내", content: "[예시] 현지 통화 관련 참고 내용을 채워주세요." },
-  ],
-
-  // 6) 변경사항 — 최신 항목을 배열 맨 앞에 추가하세요 (위에서부터 최신순으로 표시됨)
-  changes: [
-    { date: "8/4 09:10", tag: "일반", title: "[예시] 3일차 일정 변경", content: "[예시] 변경 내용을 여기에 적어주세요.", urgent: false },
-  ],
-};
-
-/* ============================================================
-   🔗 구글 시트 연동 설정
-   1) 구글 시트를 만들고 "공유" → "링크가 있는 모든 사용자 - 뷰어"로 설정
-   2) 주소창의 시트 ID를 복사해서 아래 SHEET_ID에 붙여넣기
-      예) https://docs.google.com/spreadsheets/d/1AbCdEfGhIj.../edit
-                                              └────────┘ 이 부분
-   3) 시트 하단 탭 이름은 SHEET_TABS 값과 정확히 일치해야 함 (대소문자 포함)
-   ============================================================ */
-const SHEET_ID = "1e-fYMtnsH_Z8fdBgo5kqwZUlab_QvftwzfP87UHCWTc";
-const SHEET_TABS = {
-  phrases: "Phrases",
-  songs: "Songs",
-  devotion: "Devotion",
-  // "전체 일정계획표"는 별도 탭 없이 scheduleDaily 데이터로부터 자동으로 만들어집니다.
-  scheduleDaily: "ScheduleDaily",
-  prep: "Prep",
-  etc: "Etc",
-  changes: "Changes",
-};
-
-// 구글 시트 한 탭을 [{컬럼명: 값}, ...] 형태의 배열로 가져옴
-async function fetchSheetRows(tabName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tabName)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const jsonStr = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
-  const json = JSON.parse(jsonStr);
-  const cols = json.table.cols.map(c => (c.label || '').trim().toLowerCase());
-  return (json.table.rows || []).map(r => {
-    const obj = {};
-    cols.forEach((key, i) => {
-      const cell = r.c[i];
-      let val = '';
-      if (cell) {
-        // 한 열에 숫자와 텍스트가 섞이면 구글 시트가 텍스트 값을 v(원본값)에서 누락시키는 경우가 있어
-        // v가 비어있으면 f(화면에 보이는 표시값)를 대신 사용해서 텍스트가 사라지지 않도록 함
-        if (cell.v !== null && cell.v !== undefined && cell.v !== '') val = String(cell.v);
-        else if (cell.f !== null && cell.f !== undefined) val = String(cell.f);
-      }
-      obj[key] = val;
-    });
-    return obj;
-  });
-}
-
-function toBool(v) {
-  return ['true', 'y', 'yes', '1', 'o'].includes(String(v).trim().toLowerCase());
-}
-
-// 시트에서 받아온 원시 rows를 기존 DATA 구조 형태로 변환해서 채워 넣음
-async function loadFromSheets() {
-  const [phrases, songs, devotion, schedDaily, prep, etc, changes] = await Promise.all([
-    fetchSheetRows(SHEET_TABS.phrases),
-    fetchSheetRows(SHEET_TABS.songs),
-    fetchSheetRows(SHEET_TABS.devotion),
-    fetchSheetRows(SHEET_TABS.scheduleDaily),
-    fetchSheetRows(SHEET_TABS.prep),
-    fetchSheetRows(SHEET_TABS.etc),
-    fetchSheetRows(SHEET_TABS.changes),
-  ]);
-
-  // 0) 도움되는 것 : tab, type(phrase/note), korean, japanese, reading, content
-  DATA.phrases = phrases.filter(r => r.korean || r.japanese || r.content).map(r => ({
-    tab: r.tab || '자주 사용하는 말',
-    type: (r.type || '').toLowerCase().startsWith('note') ? 'note' : 'phrase',
-    korean: r.korean || '', japanese: r.japanese || '', reading: r.reading || '', content: r.content || '',
-  }));
-
-  // 1) 찬양 악보 : category(japan/korean), title, note, link
-  DATA.songs = { both: [], japan: [], korean: [] };
-  songs.forEach(row => {
-    const cat = (row.category || '').toLowerCase();
-    let group = 'both'; // 인식 안 되는 값이나 '통합'/'both' 계열은 모두 한일 통합으로 분류
-    if (cat.startsWith('jap')) group = 'japan';
-    else if (cat.startsWith('kor')) group = 'korean';
-    if (row.title) DATA.songs[group].push({ title: row.title, note: row.note || '', link: row.link || '' });
-  });
-
-  // 2) 말씀 묵상 : day, topic, title, verse, content
-  //    - topic : 그날의 주제/행사 등 짧은 소개 (title 위에 표시, 없어도 됨)
-  //    - verse : 시트 셀 안에서 절 사이에 줄바꿈(Alt+Enter)을 넣지 않아도, 절 번호를 기준으로 자동 줄바꿈됨
-  //    - content : 묵상 질문. 질문마다 줄바꿈으로 구분해서 입력 (예: "1) ...\n2) ...")
-  DATA.devotion = {};
-  DATA.days.forEach(d => DATA.devotion[d.key] = null);
-  devotion.forEach(row => {
-    if (row.day) DATA.devotion[row.day] = { topic: row.topic || '', title: row.title, verse: row.verse, content: row.content };
-  });
-
-  // 3) 일정 : 이제 "ScheduleDaily" 탭 하나만 관리하면 됩니다 (day, time, activity, place, note).
-  //    - "전체 일정계획표" 그리드는 이 상세 시간표를 바탕으로 자동으로 만들어집니다.
-  //      (한 항목은, 다음 항목이 시작하기 전까지 계속되는 것으로 보고 시간대별 칸을 채웁니다)
-  //    - 더 이상 "ScheduleOverview" 탭을 따로 관리할 필요가 없습니다.
-  const dayKeys = DATA.days.map(d => d.key);
-
-  // 3-1) 일자별 시간표 : day, time, activity, place, note
-  DATA.scheduleDaily = {};
-  DATA.days.forEach(d => DATA.scheduleDaily[d.key] = []);
-  schedDaily.forEach(row => {
-    if (row.day && DATA.scheduleDaily[row.day]) {
-      DATA.scheduleDaily[row.day].push({ time: row.time || '', activity: row.activity || '', place: row.place || '', note: row.note || '' });
-    }
-  });
-
-  // 3-2) 전체 일정계획표(그리드) : 위 일자별 시간표에서 자동 생성
-  DATA.scheduleOverview = buildOverviewFromDaily(DATA.scheduleDaily, dayKeys);
-
-  // 4) 필요 준비물 : category, type(사역/개인), item, note, day(선택)
-  DATA.prep = prep.filter(r => r.item).map(r => ({
-    category: r.category || '기타', type: r.type || '', item: r.item, note: r.note || '', day: r.day || '',
-  }));
-
-  // 5) 기타 내용 : title, content
-  DATA.etc = etc.filter(r => r.title).map(r => ({ title: r.title, content: r.content || '' }));
-
-  // 6) 변경사항 : date, tag, title, content, urgent (TRUE/FALSE)
-  //    ※ 시트에서 새 항목은 항상 맨 위(헤더 바로 아래 행)에 추가해야 최신순으로 표시됨
-  DATA.changes = changes.filter(r => r.title).map(r => ({
-    date: r.date || '', tag: r.tag || '일반', title: r.title, content: r.content || '', urgent: toBool(r.urgent),
-  }));
-}
-
-/* ============================================================
-   🧱 렌더링 로직 — 이 아래는 구조 부분이므로 원칙적으로 수정 불필요
-   ============================================================ */
-
-document.getElementById('tripTitle').textContent = DATA.trip.title;
-document.getElementById('tripSubtitle').textContent = DATA.trip.subtitle;
-
-function dayLabel(key) {
-  const d = DATA.days.find(d => d.key === key);
-  return d ? `${d.label} (${d.date})` : key;
-}
-
-function emptyState(msg) {
-  return `<div class="empty-state">${msg}</div>`;
-}
-
-function escapeHtml(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/* ---------- 0) 도움되는 것 - 자주 사용하는 말 ---------- */
-function renderPhrases() {
-  const tabsEl = document.getElementById('phraseTabs');
-  const list = DATA.phrases || [];
-  const tabNames = [];
-  list.forEach(p => { if (p.tab && !tabNames.includes(p.tab)) tabNames.push(p.tab); });
-  if (tabNames.length === 0) tabNames.push('자주 사용하는 말');
-
-  tabsEl.innerHTML = tabNames.map((t, i) =>
-    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-tab="${escapeHtml(t)}" onclick="showPhraseTab(this)">${t}</button>`
-  ).join('');
-  showPhraseTab(tabsEl.querySelector('.sub-tab'));
-}
-function showPhraseTab(btn) {
-  document.querySelectorAll('#phraseTabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  const tabName = btn.dataset.tab;
-  const contentEl = document.getElementById('phraseContent');
-  const items = (DATA.phrases || []).filter(p => (p.tab || '자주 사용하는 말') === tabName);
-  if (items.length === 0) {
-    contentEl.innerHTML = emptyState('아직 등록된 내용이 없습니다.');
-    return;
-  }
-  contentEl.innerHTML = items.map(p => {
-    if (p.type === 'note') {
-      return `<div class="note-item">${escapeHtml(p.content)}</div>`;
-    }
-    return `
-    <div class="phrase-item">
-      <div class="phrase-kr">${escapeHtml(p.korean)}</div>
-      <div class="phrase-jp-row">
-        <span class="phrase-jp">${escapeHtml(p.japanese)}</span>
-        <span class="phrase-reading">${escapeHtml(p.reading)}</span>
-        <button class="speak-btn" data-jp="${escapeHtml(p.japanese)}" onclick="speakJapanese(this)" title="일본어 발음 듣기">🔊</button>
-      </div>
-    </div>
-  `;
-  }).join('');
-}
-// 브라우저 내장 음성합성(Web Speech API)으로 일본어 읽어주기 — 별도 서버/비용 없이 동작
-function speakJapanese(btn) {
-  const text = btn.dataset.jp;
-  if (!text) return;
-  if (!('speechSynthesis' in window)) {
-    alert('이 브라우저는 음성 재생 기능을 지원하지 않습니다.');
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'ja-JP';
-  utter.rate = 1.1; // 기본값보다 조금 빠르게
-  window.speechSynthesis.speak(utter);
-}
-
-/* ---------- 1) 찬양 악보 ---------- */
-function renderSongs() {
-  const tabsEl = document.getElementById('songTabs');
-  const groups = [
-    { key: 'both', label: '한일 통합' },
-    { key: 'japan', label: '일본어 찬양' },
-    { key: 'korean', label: '한국어 찬양' },
-  ];
-  tabsEl.innerHTML = groups.map((g, i) =>
-    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-key="${g.key}" onclick="showSongGroup('${g.key}', this)">${g.label}</button>`
-  ).join('');
-  showSongGroup(groups[0].key, tabsEl.querySelector('.sub-tab'));
-}
-function renderSongList(list) {
-  return list.map((s, i) => {
-    const preview = s.link ? buildScorePreview(s.link) : '';
-    return `
-    <div class="song-item-wrap">
-      <div class="song-item">
-        <span class="song-num">${i + 1}</span>
-        <span class="song-title">${s.title}</span>
-        ${s.note ? `<span class="song-note">${s.note}</span>` : ''}
-      </div>
-      ${preview ? `<div class="score-preview">${preview}</div>` : ''}
-    </div>
-  `;
-  }).join('');
-}
-function showSongGroup(key, btn) {
-  document.querySelectorAll('#songTabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  const contentEl = document.getElementById('songContent');
-  const list = DATA.songs[key] || [];
-  if (list.length === 0) {
-    contentEl.innerHTML = emptyState('아직 등록된 악보가 없습니다.');
-    return;
-  }
-  contentEl.innerHTML = renderSongList(list);
-}
-
-// 구글 드라이브 공유 링크에서 파일 ID 추출
-function extractDriveId(url) {
-  if (!url) return null;
-  const patterns = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
-
-// 링크 형식에 맞춰 인라인 미리보기 HTML 생성 (드라이브 이미지/PDF는 img로, 그 외는 iframe으로)
-function buildScorePreview(link) {
-  const driveId = extractDriveId(link);
-  if (driveId) {
-    // 드라이브에 올린 사진은 img 태그로 바로 렌더링 (클릭 없이 바로 보임)
-    return `<img src="https://drive.google.com/uc?export=view&id=${driveId}" loading="lazy" onerror="this.outerHTML='<iframe src=\\'https://drive.google.com/file/d/${driveId}/preview\\' style=\\'height:420px;\\' loading=\\'lazy\\'></iframe>'">`;
-  }
-  if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(link)) {
-    return `<img src="${link}" loading="lazy">`;
-  }
-  return `<iframe src="${link}" style="height:420px;" loading="lazy"></iframe>`;
-}
-
-/* ---------- 2) 말씀 묵상 ---------- */
-function renderDevotionTabs() {
-  const tabsEl = document.getElementById('devotionDayTabs');
-  tabsEl.innerHTML = DATA.days.map((d, i) =>
-    `<button class="day-tab ${i === 0 ? 'active' : ''}" data-key="${d.key}" onclick="showDevotion('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`
-  ).join('');
-  showDevotion(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
-}
-// 절 본문을 한 줄씩 나눠서 보여주기 위한 처리
-// - 시트 셀 안에서 이미 줄바꿈(Alt+Enter)을 넣었다면 그 줄바꿈 그대로 사용
-// - 줄바꿈 없이 "1너희의...2그 때에..." 식으로 절 번호가 붙어서 쭉 이어진 경우, 절 번호 앞에서 자동으로 줄을 나눔
-function formatVerseLines(verseText) {
-  if (!verseText) return '';
-  let lines;
-  if (verseText.includes('\n')) {
-    lines = verseText.split('\n');
-  } else {
-    lines = verseText.split(/(?=\d+)/);
-  }
-  lines = lines.map(l => l.trim()).filter(Boolean);
-  return lines.map(l => `<p class="verse-line">${escapeHtml(l)}</p>`).join('');
-}
-
-// 묵상 질문(content) : 줄바꿈 기준으로 질문을 나누고, 각 질문 아래에 개인 답변을 적고 저장할 수 있는 입력창을 붙임
-// 저장은 이 기기(브라우저)의 localStorage에 저장되어, 같은 기기로 다시 들어오면 자동으로 불러와짐
-function renderDevotionQuestions(dayKey, contentText) {
-  if (!contentText) return '';
-  const lines = contentText.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!lines.length) return '';
-  return `
-    <div class="devo-questions">
-      <p class="devo-questions-label">묵상 질문 &amp; 나의 답</p>
-      ${lines.map((line, i) => {
-        const storageKey = `devoAnswer_${dayKey}_${i}`;
-        const saved = localStorage.getItem(storageKey) || '';
-        return `
-          <div class="devo-question">
-            <p class="devo-question-text">${escapeHtml(line)}</p>
-            <textarea class="devo-answer-input" data-key="${storageKey}" placeholder="이곳에 나의 생각을 적어보세요">${escapeHtml(saved)}</textarea>
-            <div class="devo-answer-actions">
-              <button class="devo-save-btn" onclick="saveDevotionAnswer(this)">저장</button>
-              <span class="devo-save-status"></span>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-}
-
-function saveDevotionAnswer(btn) {
-  const wrap = btn.closest('.devo-question');
-  const textarea = wrap.querySelector('.devo-answer-input');
-  const status = wrap.querySelector('.devo-save-status');
-  localStorage.setItem(textarea.dataset.key, textarea.value);
-  status.textContent = '저장됨 ✓';
-  setTimeout(() => { status.textContent = ''; }, 2000);
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function showDevotion(key, btn) {
-  document.querySelectorAll('#devotionDayTabs .day-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  const d = DATA.devotion[key];
-  const contentEl = document.getElementById('devotionContent');
-  if (!d) {
-    contentEl.innerHTML = emptyState(`${dayLabel(key)} 묵상 내용이 아직 등록되지 않았습니다.`);
-    return;
-  }
-  contentEl.innerHTML = `
-    <div class="card">
-      ${d.topic ? `<p class="devo-topic">${escapeHtml(d.topic)}</p>` : ''}
-      <p class="card-title">${escapeHtml(d.title)}</p>
-      <div class="devo-verse">${formatVerseLines(d.verse)}</div>
-      ${renderDevotionQuestions(key, d.content)}
-    </div>
-  `;
-}
-
-/* ---------- 3) 일정 ---------- */
-let scheduleTestNow = null;
-
-function parseScheduleTestDateTime(value) {
-  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
-  if (!match) return null;
-  const date = new Date(
-    Number(match[1]),
-    Number(match[2]) - 1,
-    Number(match[3]),
-    Number(match[4]),
-    Number(match[5]),
-    0,
-    0
-  );
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function getScheduleReferenceNow() {
-  return scheduleTestNow ? new Date(scheduleTestNow.getTime()) : new Date();
-}
-
-function formatScheduleReferenceTime(date) {
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
-function updateScheduleTimeStatus() {
-  const statusEl = document.getElementById('scheduleTimeStatus');
-  if (!statusEl) return;
-
-  if (!scheduleTestNow) {
-    statusEl.classList.remove('testing');
-    statusEl.textContent = '실시간 기준 · 현재 기기 시각으로 일정이 강조됩니다.';
-    return;
-  }
-
-  const referenceKey = getTodayDayKey(scheduleTestNow);
-  statusEl.classList.add('testing');
-  statusEl.textContent = referenceKey
-    ? `테스트 기준 · ${formatScheduleReferenceTime(scheduleTestNow)} · ${dayLabel(referenceKey)}`
-    : `테스트 기준 · ${formatScheduleReferenceTime(scheduleTestNow)} · 선교 일정 기간 밖`;
-}
-
-function selectScheduleReferenceDay(referenceNow, scrollToCurrent = true) {
-  const key = getTodayDayKey(referenceNow);
-  if (!key) {
-    refreshCurrentScheduleHighlight();
-    return;
-  }
-
-  const btn = document.querySelector(`#scheduleDayTabs .day-tab[data-key="${key}"]`);
-  if (!btn) return;
-  showScheduleDay(key, btn);
-  btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-
-  if (scrollToCurrent) {
-    requestAnimationFrame(() => {
-      document.querySelector('#scheduleContent .sched-item.current')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
-  }
-}
-
-function applyScheduleTestDateTime(value) {
-  scheduleTestNow = parseScheduleTestDateTime(value);
-  updateScheduleTimeStatus();
-  selectScheduleReferenceDay(getScheduleReferenceNow());
-}
-
-function clearScheduleTestDateTime() {
-  scheduleTestNow = null;
-  const input = document.getElementById('scheduleTestDateTime');
-  if (input) input.value = '';
-  updateScheduleTimeStatus();
-  selectScheduleReferenceDay(getScheduleReferenceNow());
-}
-
-function switchScheduleView(btn) {
-  document.querySelectorAll('#page-schedule > .sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('#page-schedule .sub-page').forEach(p => p.classList.remove('active'));
-  document.getElementById(btn.dataset.target).classList.add('active');
-
-  if (btn.dataset.target === 'sched-daily') {
-    refreshCurrentScheduleHighlight();
-    requestAnimationFrame(() => {
-      document.querySelector('#scheduleContent .sched-item.current')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
-  }
-}
-// 같은 값이 연속되는 구간을 하나로 합쳐서 rowspan 정보로 변환 (빈 값은 병합하지 않음)
-// 일자별 상세 시간표(scheduleDaily)를 바탕으로 "전체 일정계획표" 그리드를 자동으로 만들어냄
-// - 항목의 시작 시각(time)만 있으면, 그 항목은 "다음 항목이 시작되기 전까지" 계속되는 것으로 봄
-// - 모든 날짜를 통틀어 가장 이른 시각 ~ 가장 늦은 시각(+1시간) 범위로 1시간 단위 행(slot)을 만듦
-function buildOverviewFromDaily(scheduleDaily, dayKeys) {
-  let minHour = 8, maxHour = 23; // 항목이 하나도 없을 때 기본 범위
-  let found = false;
-  dayKeys.forEach(k => {
-    (scheduleDaily[k] || []).forEach(item => {
-      const mins = parseClockMinutes(item.time);
-      if (mins === null) return;
-      const hour = Math.floor(mins / 60);
-      if (!found || hour < minHour) minHour = hour;
-      if (!found || hour + 1 > maxHour) maxHour = hour + 1;
-      found = true;
-    });
-  });
-  if (!found) return { slots: [], byDay: {} };
-
-  const slots = [];
-  for (let h = minHour; h < maxHour; h++) slots.push(`${h}:00~${h + 1}:00`);
-
-  const byDay = {};
-  dayKeys.forEach(k => {
-    const items = (scheduleDaily[k] || [])
-      .map(item => ({ activity: item.activity, mins: parseClockMinutes(item.time) }))
-      .filter(item => item.mins !== null)
-      .sort((a, b) => a.mins - b.mins);
-    byDay[k] = slots.map((_, i) => {
-      const slotStart = (minHour + i) * 60;
-      let current = '';
-      items.forEach(item => { if (item.mins <= slotStart) current = item.activity; });
-      return current;
-    });
-  });
-
-  return { slots, byDay };
-}
-
-function collapseColumn(values) {
-  const result = new Array(values.length).fill(null);
-  let i = 0;
-  while (i < values.length) {
-    let j = i;
-    while (j + 1 < values.length && values[i] !== '' && values[j + 1] === values[i]) j++;
-    result[i] = { text: values[i] || '', span: j - i + 1 };
-    i = j + 1;
-  }
-  return result;
-}
-function renderOverviewTable() {
-  const wrap = document.getElementById('overviewTableWrap');
-  const grid = DATA.scheduleOverview;
-  if (!grid || !grid.slots || grid.slots.length === 0) {
-    wrap.innerHTML = emptyState('아직 등록된 일정계획표가 없습니다.');
-    return;
-  }
-  const dayKeys = DATA.days.map(d => d.key);
-  const collapsed = {};
-  dayKeys.forEach(k => collapsed[k] = collapseColumn(grid.byDay[k] || []));
-
-  const headerHtml = `<th style="width:56px;">시간</th>` + DATA.days.map(d => `<th>${d.date}</th>`).join('');
-  let bodyHtml = '';
-  grid.slots.forEach((slot, rowIdx) => {
-    let rowHtml = `<td>${escapeHtml(slot)}</td>`;
-    dayKeys.forEach(k => {
-      const seg = collapsed[k][rowIdx];
-      if (seg === null) return; // 이전 행의 rowspan에 이미 포함된 칸이므로 건너뜀
-      const rowspanAttr = seg.span > 1 ? ` rowspan="${seg.span}"` : '';
-      rowHtml += `<td${rowspanAttr}>${escapeHtml(seg.text || '')}</td>`;
-    });
-    bodyHtml += `<tr>${rowHtml}</tr>`;
-  });
-
-  wrap.innerHTML = `
-    <div class="overview-scroll">
-      <table class="overview-table">
-        <thead><tr>${headerHtml}</tr></thead>
-        <tbody>${bodyHtml}</tbody>
-      </table>
-    </div>
-  `;
-}
-// 여행 연도와 각 일자의 실제 날짜를 계산하여 오늘 탭을 찾음
-function getTripYear() {
-  const match = String(DATA.trip.subtitle || '').match(/(20\d{2})/);
-  return match ? Number(match[1]) : new Date().getFullYear();
-}
-function getDateForDay(day) {
-  const match = String(day.date || '').match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
-  if (!match) return null;
-  return new Date(getTripYear(), Number(match[1]) - 1, Number(match[2]));
-}
-function getTodayDayKey(now = new Date()) {
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const found = DATA.days.find(day => {
-    const date = getDateForDay(day);
-    return date && date.getTime() === today;
-  });
-  return found ? found.key : null;
-}
-
-// "8:00~9:00", "16:00~", "all day/종일", 단일 시각을 현재 시간과 비교 가능한 범위로 변환
-function parseClockMinutes(text) {
-  const match = String(text || '').match(/(\d{1,2})(?:\s*:\s*(\d{1,2}))?/);
-  if (!match) return null;
-  const hour = Number(match[1]);
-  const minute = Number(match[2] || 0);
-  if (hour > 24 || minute > 59) return null;
-  return Math.min(hour * 60 + minute, 1440);
-}
-function getScheduleRange(timeText, nextTimeText) {
-  const raw = String(timeText || '').trim();
-  if (/all\s*day|종일|하루\s*종일/i.test(raw)) return { start: 0, end: 1440 };
-
-  const normalized = raw.replace(/[-～〜–—−－]/g, '~');
-  const parts = normalized.split('~');
-  const start = parseClockMinutes(parts[0]);
-  if (start === null) return null;
-
-  if (parts.length > 1) {
-    const explicitEnd = parseClockMinutes(parts.slice(1).join('~'));
-    return { start, end: explicitEnd === null ? 1440 : explicitEnd };
-  }
-
-  const nextStart = parseClockMinutes(nextTimeText);
-  return { start, end: nextStart !== null && nextStart > start ? nextStart : Math.min(start + 60, 1440) };
-}
-function isCurrentScheduleItem(key, item, index, list, now = getScheduleReferenceNow()) {
-  if (key !== getTodayDayKey(now)) return false;
-  const range = getScheduleRange(item.time, list[index + 1]?.time || '');
-  if (!range) return false;
-
-  let current = now.getHours() * 60 + now.getMinutes();
-  let end = range.end;
-  if (end <= range.start) {
-    end += 1440;
-    if (current < range.start) current += 1440;
-  }
-  return current >= range.start && current < end;
-}
-
-function renderScheduleDayTabs() {
-  const tabsEl = document.getElementById('scheduleDayTabs');
-  const referenceNow = getScheduleReferenceNow();
-  const referenceKey = getTodayDayKey(referenceNow);
-  const initialKey = referenceKey || DATA.days[0].key;
-
-  tabsEl.innerHTML = DATA.days.map(d => {
-    const classes = ['day-tab'];
-    if (d.key === initialKey) classes.push('active');
-    if (d.key === referenceKey) classes.push('today');
-    return `<button class="${classes.join(' ')}" data-key="${d.key}" onclick="showScheduleDay('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`;
-  }).join('');
-
-  const initialBtn = tabsEl.querySelector(`[data-key="${initialKey}"]`);
-  showScheduleDay(initialKey, initialBtn);
-  initialBtn?.scrollIntoView({ inline: 'center', block: 'nearest' });
-  updateScheduleTimeStatus();
-}
-function showScheduleDay(key, btn) {
-  document.querySelectorAll('#scheduleDayTabs .day-tab').forEach(t => t.classList.remove('active'));
-  btn?.classList.add('active');
-  const list = DATA.scheduleDaily[key] || [];
-  const contentEl = document.getElementById('scheduleContent');
-  if (list.length === 0) {
-    contentEl.innerHTML = emptyState(`${dayLabel(key)} 시간표가 아직 등록되지 않았습니다.`);
-    return;
-  }
-
-  const referenceNow = getScheduleReferenceNow();
-  const badgeText = scheduleTestNow ? '선택 시간' : '지금';
-  contentEl.innerHTML = list.map((item, index) => {
-    const isCurrent = isCurrentScheduleItem(key, item, index, list, referenceNow);
-    return `
-    <div class="sched-item ${isCurrent ? 'current' : ''}">
-      <span class="sched-time">${escapeHtml(item.time)}</span>
-      <div class="sched-body">
-        <p class="sched-activity">${escapeHtml(item.activity)}${isCurrent ? `<span class="sched-current-badge">${badgeText}</span>` : ''}</p>
-        ${item.place ? `<div class="sched-place">📍 ${escapeHtml(item.place)}</div>` : ''}
-        ${item.note ? `<div class="sched-note">⚠ ${escapeHtml(item.note)}</div>` : ''}
-      </div>
-    </div>
-  `;
-  }).join('');
-}
-function refreshCurrentScheduleHighlight() {
-  const referenceNow = getScheduleReferenceNow();
-  const referenceKey = getTodayDayKey(referenceNow);
-  document.querySelectorAll('#scheduleDayTabs .day-tab').forEach(tab => {
-    tab.classList.toggle('today', tab.dataset.key === referenceKey);
-  });
-
-  const activeBtn = document.querySelector('#scheduleDayTabs .day-tab.active');
-  if (activeBtn) showScheduleDay(activeBtn.dataset.key, activeBtn);
-  updateScheduleTimeStatus();
-}
-
-
-/* ---------- 4) 준비물 ---------- */
-function switchPrepView(btn) {
-  document.querySelectorAll('#page-prep > .sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('#page-prep .sub-page').forEach(p => p.classList.remove('active'));
-  document.getElementById(btn.dataset.target).classList.add('active');
-}
-// 사역(단체)/개인/공통(type 미기재)으로 구분
-function classifyPrepItems(items) {
-  return {
-    work: items.filter(p => p.type === '사역'),
-    personal: items.filter(p => p.type === '개인'),
-    common: items.filter(p => p.type !== '사역' && p.type !== '개인'),
-  };
-}
-function renderChecklist(items) {
-  return `<ul class="checklist">` + items.map(p => `
-    <li><div><div>${escapeHtml(p.item)}</div>${p.note ? `<span class="item-note">${escapeHtml(p.note)}</span>` : ''}</div></li>
-  `).join('') + `</ul>`;
-}
-function renderPrepSections(items) {
-  const { work, personal, common } = classifyPrepItems(items);
-  if (items.length === 0) return emptyState('등록된 준비물이 없습니다.');
-  let html = '';
-  if (common.length) html += renderChecklist(common);
-  if (work.length) html += `<div class="section-label">📦 사역 물품 (단체)</div>${renderChecklist(work)}`;
-  if (personal.length) html += `<div class="section-label">🎒 개인 물품</div>${renderChecklist(personal)}`;
-  return html;
-}
-
-function renderPrepCategoryTabs() {
-  const tabsEl = document.getElementById('prepCategoryTabs');
-  const cats = [];
-  (DATA.prep || []).forEach(p => { const c = p.category || '기타'; if (!cats.includes(c)) cats.push(c); });
-  if (cats.length === 0) cats.push('출발전 공통');
-  tabsEl.innerHTML = cats.map((c, i) =>
-    `<button class="sub-tab ${i === 0 ? 'active' : ''}" data-cat="${escapeHtml(c)}" onclick="showPrepCategory(this)">${c}</button>`
-  ).join('');
-  showPrepCategory(tabsEl.querySelector('.sub-tab'));
-}
-function showPrepCategory(btn) {
-  document.querySelectorAll('#prepCategoryTabs .sub-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  const cat = btn.dataset.cat;
-  const items = (DATA.prep || []).filter(p => (p.category || '기타') === cat);
-  document.getElementById('prepCategoryContent').innerHTML = renderPrepSections(items);
-}
-
-function renderPrepDayTabs() {
-  const tabsEl = document.getElementById('prepDayTabs');
-  tabsEl.innerHTML = DATA.days.map((d, i) =>
-    `<button class="day-tab ${i === 0 ? 'active' : ''}" data-key="${d.key}" onclick="showPrepDay('${d.key}', this)">${d.label}<span class="day-tab-date">${d.date}</span></button>`
-  ).join('');
-  showPrepDay(DATA.days[0].key, tabsEl.querySelector('.day-tab'));
-}
-function showPrepDay(key, btn) {
-  document.querySelectorAll('#prepDayTabs .day-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  // day 칸에 "day1,day9"처럼 콤마로 여러 날짜를 적으면 각 날짜 탭에 모두 표시됨
-  const items = (DATA.prep || []).filter(p => (p.day || '').split(',').map(d => d.trim()).includes(key));
-  const contentEl = document.getElementById('prepDailyContent');
-  contentEl.innerHTML = items.length ? renderPrepSections(items) : emptyState(`${dayLabel(key)} 준비물이 아직 등록되지 않았습니다.`);
-}
-
-/* ---------- 5) 기타 내용 ---------- */
-function renderEtc() {
-  const el = document.getElementById('etcContent');
-  if (DATA.etc.length === 0) {
-    el.innerHTML = emptyState('등록된 내용이 없습니다.');
-    return;
-  }
-  el.innerHTML = DATA.etc.map(e => `
-    <div class="card">
-      <p class="card-title">${e.title}</p>
-      <p class="card-body">${e.content}</p>
-    </div>
-  `).join('');
-}
-
-/* ---------- 6) 변경사항 ---------- */
-function renderChanges() {
-  const el = document.getElementById('changesContent');
-  if (DATA.changes.length === 0) {
-    el.innerHTML = emptyState('아직 변경사항이 없습니다.');
-    return;
-  }
-  el.innerHTML = DATA.changes.map((c, i) => `
-    <div class="change-item ${c.urgent ? 'is-urgent' : (i === 0 ? 'is-new' : '')}">
-      <div class="change-meta">
-        <span class="change-date">${c.date}</span>
-        <span class="change-tag ${c.urgent ? 'urgent' : (i === 0 ? 'new' : '')}">${c.urgent ? '긴급' : (i === 0 ? '최신' : c.tag)}</span>
-      </div>
-      <p class="change-title">${c.title}</p>
-      <p class="change-body">${c.content}</p>
-    </div>
-  `).join('');
-}
-
-/* ---------- 네비게이션 ---------- */
-function goTo(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'auto' });
-}
-function goHome() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('home').classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'auto' });
-}
-
-/* ---------- 초기 렌더링 ---------- */
-function renderAll() {
-  renderPhrases();
-  renderSongs();
-  renderDevotionTabs();
-  renderOverviewTable();
-  renderScheduleDayTabs();
-  renderPrepCategoryTabs();
-  renderPrepDayTabs();
-  renderEtc();
-  renderChanges();
-}
-
-async function init() {
-  const statusEl = document.getElementById('loadStatus');
-  if (SHEET_ID === "여기에_구글시트_ID_붙여넣기") {
-    // 시트 ID가 아직 설정되지 않은 경우: 기본(예시) 데이터로만 표시
-    statusEl.textContent = "⚠ 구글 시트가 연결되지 않아 예시 데이터로 표시 중입니다.";
-    renderAll();
-    return;
-  }
-  try {
-    await loadFromSheets();
-    statusEl.textContent = "✅ 최신 정보로 업데이트되었습니다 · " + new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    renderAll();
-  } catch (e) {
-    console.error('구글 시트 로딩 실패:', e);
-    statusEl.textContent = "⚠ 최신 정보를 불러오지 못했습니다. 기존 내용으로 표시합니다.";
-    renderAll();
-  }
-}
-init();
-
-// 시간이 바뀌면 현재 일정 강조도 자동으로 갱신
-setInterval(refreshCurrentScheduleHighlight, 60 * 1000);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) refreshCurrentScheduleHighlight();
-});
-</script>
-
+<!-- ============================================================ -->
+<!-- 7) 개인 메모 페이지 -->
+<!-- ============================================================ -->
+<div class="page" id="page-memo">
+  <div class="page-header"><button class="back-btn" onclick="goHome()">← 홈으로</button><h2 class="page-title">✍️ 개인 메모</h2></div>
+  
+  <!-- 사용자가 글씨를 입력할 수 있는 구역 -->
+  <div class="card memo-input-card">
+    <p class="card-title" style="color: #0F6E56;">➕ 새 메모 작성</p>
+    <!-- textarea는 여러 줄의 텍스트를 입력할 수 있는 텍스트 박스입니다 -->
+    <textarea id="myMemoInput" placeholder="나만의 메모를 작성하세요. (내 기기에만 비공개로 저장됩니다)" class="devo-answer-input" style="min-height:80px; margin-bottom:8px;"></textarea>
+    <!-- 이 버튼을 누르면 자바스크립트의 saveMyMemo() 함수가 실행되어 내용이 폰에 저장됩니다 -->
+    <button class="devo-save-btn" onclick="saveMyMemo()">저장하기</button>
+  </div>
+  
+  <!-- 저장된 메모들이 카드 형태로 쌓일 빈 상자 -->
+  <div id="myMemoList"></div>
+</div>
+
+<!-- 
+  가장 마지막에 자바스크립트 파일(app.js)을 불러옵니다.
+  HTML 뼈대가 모두 그려진 다음에 스크립트가 실행되어야 에러가 안 나기 때문입니다.
+-->
+<script src="app.js"></script>
 </body>
 </html>
